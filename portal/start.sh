@@ -7,7 +7,7 @@ sleep 5
 
 # Run migrations
 echo "Running database migrations..."
-npx prisma migrate deploy
+prisma migrate deploy || echo "Migration failed, continuing..."
 
 # Start the application
 echo "Starting application..."

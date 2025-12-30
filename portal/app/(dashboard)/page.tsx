@@ -5,17 +5,21 @@ import { AircraftStatus } from "@prisma/client";
 export const dynamic = 'force-dynamic';
 
 async function getStats() {
-  const aircraftCount = await prisma.aircraft.count();
-  const memberCount = await prisma.user.count({ where: { role: 'MEMBER' } });
-  const upcomingReservations = await prisma.reservation.count({
-    where: {
-      startTime: {
-        gte: new Date(),
-      },
-    },
-  });
-  
-  return { aircraftCount, memberCount, upcomingReservations };
+  try {
+    const aircraftCount = await prisma.aircraft.count();
+    const memberCount = await prisma.user.count({ where: { role: 'MEMBER' } });
+    const upcomingReservations = await prisma.reservation.count({
+        where: {
+        startTime: {
+            gte: new Date(),
+        },
+        },
+    });
+    return { aircraftCount, memberCount, upcomingReservations };
+  } catch (e) {
+    console.error("Database connection failed", e);
+    return { aircraftCount: 0, memberCount: 0, upcomingReservations: 0 };
+  }
 }
 
 export default async function Dashboard() {

@@ -1,0 +1,217 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  role          UserRole  @default(MEMBER)
+  shareSize     Float     @default(1.0) // 1.0 = full share, 0.5 = half share
+  balance       Float     @default(0.0)
+  
+  accounts      Account[]
+  sessions      Session[]
+  reservations  Reservation[]
+  flightLogs    FlightLog[]
+  invoices      Invoice[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+enum UserRole {
+  ADMIN
+  MEMBER
+  INSTRUCTOR
+  MECHANIC
+}
+
+model Aircraft {
+  id            String    @id @default(cuid())
+  registration  String    @unique // Tail number
+  make          String
+  model         String
+  year          Int
+  image         String?
+  status        AircraftStatus @default(AVAILABLE)
+  
+  hourlyRate    Float
+  
+  currentHobbs  Float
+  currentTach   Float
+  
+  reservations  Reservation[]
+  maintenance   MaintenanceLog[]
+  flightLogs    FlightLog[]
+
+  nextAnnual    DateTime?
+  next100Hour   Float?
+  nextOilChange Float?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+enum AircraftStatus {
+  AVAILABLE
+  MAINTENANCE
+  GROUNDED
+  IN_USE
+}
+
+model Reservation {
+  id        String   @id @default(cuid())
+  userId    String
+  aircraftId String
+  startTime DateTime
+  endTime   DateTime
+  type      ReservationType @default(FLIGHT)
+  notes     String?
+  
+  user      User     @relation(fields: [userId], references: [id])
+  aircraft  Aircraft @relation(fields: [aircraftId], references: [id])
+  flightLog FlightLog?
+
+  googleEventId String? // For Google Calendar Sync
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ReservationType {
+  FLIGHT
+  INSTRUCTION
+  MAINTENANCE
+  GROUND_SCHOOL
+}
+
+model FlightLog {
+  id            String   @id @default(cuid())
+  reservationId String   @unique
+  userId        String
+  aircraftId    String
+  
+  hobbsStart    Float
+  hobbsEnd      Float
+  tachStart     Float
+  tachEnd       Float
+  
+  flightTime    Float // Calculated usually from Hobbs
+  
+  cost          Float // Calculated based on rate * time
+  
+  notes         String?
+  
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+  user          User        @relation(fields: [userId], references: [id])
+  aircraft      Aircraft    @relation(fields: [aircraftId], references: [id])
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model MaintenanceLog {
+  id          String   @id @default(cuid())
+  aircraftId  String
+  title       String
+  description String?
+  date        DateTime
+  type        MaintenanceType
+  
+  cost        Float?
+  performedBy String?
+  
+  aircraft    Aircraft @relation(fields: [aircraftId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum MaintenanceType {
+  ANNUAL
+  ONE_HUNDRED_HOUR
+  OIL_CHANGE
+  REPAIR
+  UPGRADE
+  AD_COMPLIANCE
+}
+
+model Invoice {
+  id          String   @id @default(cuid())
+  userId      String
+  amount      Float
+  status      InvoiceStatus @default(DRAFT)
+  dueDate     DateTime
+  description String?
+  
+  items       InvoiceItem[]
+  
+  user        User     @relation(fields: [userId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model InvoiceItem {
+  id          String   @id @default(cuid())
+  invoiceId   String
+  description String
+  quantity    Float    @default(1.0)
+  unitPrice   Float
+  amount      Float
+  
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id])
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}

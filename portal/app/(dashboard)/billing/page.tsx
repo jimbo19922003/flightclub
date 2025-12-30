@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
 
+export const dynamic = 'force-dynamic';
+
 async function getBillingStats() {
     // In a real app, filter by current user if not admin
     const invoices = await prisma.invoice.findMany({

@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/Card";
 import { AircraftStatus } from "@prisma/client";
 
+export const dynamic = 'force-dynamic';
+
 async function getStats() {
   const aircraftCount = await prisma.aircraft.count();
   const memberCount = await prisma.user.count({ where: { role: 'MEMBER' } });

@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import CheckInForm from "@/components/forms/CheckInForm";
 import { notFound } from "next/navigation";
 
+export const dynamic = 'force-dynamic';
+
 export default async function CheckInPage({ params }: { params: { id: string } }) {
   const reservation = await prisma.reservation.findUnique({
     where: { id: params.id },

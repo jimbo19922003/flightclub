@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
 import { Wrench, AlertTriangle, CheckCircle } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+
 async function getAircraftMaintenanceStatus() {
   const aircraft = await prisma.aircraft.findMany({
     include: {

@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
 import Link from "next/link";
 
+export const dynamic = 'force-dynamic';
+
 async function getReservations() {
   return await prisma.reservation.findMany({
     include: {

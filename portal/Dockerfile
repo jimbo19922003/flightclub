@@ -9,6 +9,8 @@ WORKDIR /app
 # Install dependencies based on the preferred package manager
 COPY package.json package-lock.json* ./
 RUN npm ci
+COPY prisma ./prisma
+RUN npx prisma generate
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -20,8 +22,6 @@ COPY . .
 # Learn more here: https://nextjs.org/telemetry
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED 1
-
-RUN npx prisma generate
 
 RUN npm run build
 

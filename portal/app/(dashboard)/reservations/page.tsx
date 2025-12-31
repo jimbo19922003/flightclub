@@ -5,16 +5,21 @@ import Link from "next/link";
 export const dynamic = 'force-dynamic';
 
 async function getReservations() {
-  return await prisma.reservation.findMany({
-    include: {
-      user: true,
-      aircraft: true,
-    },
-    orderBy: { startTime: 'asc' },
-    where: {
-        startTime: { gte: new Date() } // Upcoming
-    }
-  });
+  try {
+    return await prisma.reservation.findMany({
+      include: {
+        user: true,
+        aircraft: true,
+      },
+      orderBy: { startTime: 'asc' },
+      where: {
+          startTime: { gte: new Date() } // Upcoming
+      }
+    });
+  } catch (error) {
+    console.error("Failed to fetch reservations:", error);
+    return [];
+  }
 }
 
 export default async function ReservationsPage() {

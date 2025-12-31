@@ -5,15 +5,20 @@ import { Wrench, AlertTriangle, CheckCircle } from "lucide-react";
 export const dynamic = 'force-dynamic';
 
 async function getAircraftMaintenanceStatus() {
-  const aircraft = await prisma.aircraft.findMany({
-    include: {
-      maintenance: {
-        orderBy: { date: 'desc' },
-        take: 1
+  try {
+    const aircraft = await prisma.aircraft.findMany({
+      include: {
+        maintenance: {
+          orderBy: { date: 'desc' },
+          take: 1
+        }
       }
-    }
-  });
-  return aircraft;
+    });
+    return aircraft;
+  } catch (error) {
+    console.error("Failed to fetch aircraft maintenance status:", error);
+    return [];
+  }
 }
 
 export default async function MaintenancePage() {

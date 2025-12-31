@@ -4,13 +4,18 @@ import { format } from "date-fns";
 export const dynamic = 'force-dynamic';
 
 async function getBillingStats() {
-    // In a real app, filter by current user if not admin
-    const invoices = await prisma.invoice.findMany({
-        include: { user: true },
-        orderBy: { createdAt: 'desc' },
-        take: 10
-    });
-    return invoices;
+    try {
+        // In a real app, filter by current user if not admin
+        const invoices = await prisma.invoice.findMany({
+            include: { user: true },
+            orderBy: { createdAt: 'desc' },
+            take: 10
+        });
+        return invoices;
+    } catch (error) {
+        console.error("Failed to fetch billing stats:", error);
+        return [];
+    }
 }
 
 export default async function BillingPage() {

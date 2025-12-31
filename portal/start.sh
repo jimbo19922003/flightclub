@@ -9,6 +9,10 @@ sleep 5
 echo "Running database migrations..."
 prisma migrate deploy || echo "Migration failed, continuing..."
 
+# Run seed
+echo "Seeding database..."
+npm run seed || echo "Seeding failed, continuing..."
+
 # Start the application
 echo "Starting application..."
 node server.js

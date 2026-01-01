@@ -27,8 +27,9 @@ async function getAircraft(id: string) {
     }
 }
 
-export default async function AircraftDetailPage({ params }: { params: { id: string } }) {
-  const aircraft = await getAircraft(params.id);
+export default async function AircraftDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const aircraft = await getAircraft(id);
 
   if (!aircraft) {
       notFound();

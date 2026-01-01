@@ -17,8 +17,9 @@ async function getMember(id: string) {
     }
 }
 
-export default async function MemberDetailPage({ params }: { params: { id: string } }) {
-  const member = await getMember(params.id);
+export default async function MemberDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const member = await getMember(id);
 
   if (!member) {
       notFound();

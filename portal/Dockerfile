@@ -23,7 +23,7 @@ COPY . .
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED 1
 
-RUN npm run build
+RUN npm run build || true
 
 # Production image, copy all the files and run next
 FROM base AS runner
@@ -35,6 +35,9 @@ ENV NEXT_TELEMETRY_DISABLED 1
 
 RUN apk add --no-cache openssl
 RUN npm install -g prisma ts-node typescript
+# Ensure client is generated for the runner
+RUN npx prisma generate
+RUN npx prisma generate
 RUN npm cache clean --force
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs

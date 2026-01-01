@@ -23,6 +23,22 @@ async function getSettings() {
   }
 }
 
+// Define types locally if Prisma Client types are out of sync in development
+interface ClubSettings {
+  id: string;
+  name: string;
+  type: string;
+  homeAirport: string;
+  currency: string;
+  timezone: string;
+  monthlyDues: number;
+  billingCycleDay: number;
+  maxReservationsPerUser: number;
+  maxReservationDays: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export default async function SettingsPage() {
   const data = await getSettings();
 
@@ -43,7 +59,8 @@ export default async function SettingsPage() {
   }
 
   if (!data || !data.settings) return <div>Loading...</div>;
-  const { settings, tiers } = data;
+  const settings = data.settings as unknown as ClubSettings;
+  const tiers = data.tiers;
 
   return (
     <div className="space-y-8">

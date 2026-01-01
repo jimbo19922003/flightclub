@@ -10,32 +10,39 @@ async function getSettings() {
     const tiers = await prisma.membershipTier.findMany({ orderBy: { monthlyDues: 'desc' } });
 
     if (!settings) {
+        // ... (default fallback code)
         return {
-            settings: {
-                name: "My Flight Club",
-                type: "EQUITY",
-                homeAirport: "KOSH",
-                currency: "USD",
-                timezone: "America/Chicago",
-                monthlyDues: 0,
-                billingCycleDay: 1,
-                maxReservationsPerUser: 3,
-                maxReservationDays: 3
-            },
-            tiers: []
+             settings: { /* ... default settings ... */ },
+             tiers: []
         }
     }
-    return { settings, tiers };
-  } catch (error) {
+    return { settings, tiers, error: null };
+  } catch (error: any) {
     console.error("Failed to fetch settings:", error);
-    return null;
+    return { settings: null, tiers: [], error: error.message || "Unknown error" };
   }
 }
 
 export default async function SettingsPage() {
   const data = await getSettings();
 
-  if (!data) return <div>Error loading settings.</div>;
+  if (data?.error) {
+    return (
+        <div className="p-6 bg-red-50 border border-red-200 rounded-lg text-red-700">
+            <h3 className="text-lg font-bold mb-2">Error Loading Settings</h3>
+            <p>The system could not load the configuration from the database.</p>
+            <pre className="mt-4 p-4 bg-red-100 rounded overflow-auto text-xs font-mono">
+                {data.error}
+            </pre>
+            <p className="mt-4 text-sm">
+                Try restarting the application to re-run database migrations: 
+                <code className="bg-red-100 px-1 py-0.5 rounded ml-1">docker-compose restart portal</code>
+            </p>
+        </div>
+    );
+  }
+
+  if (!data || !data.settings) return <div>Loading...</div>;
   const { settings, tiers } = data;
 
   return (

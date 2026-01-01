@@ -13,9 +13,13 @@ do
 done
 echo "Database is up!"
 
+# Force regenerate client at runtime to match current schema
+echo "Regenerating Prisma Client..."
+npx prisma generate
+
 # Push schema to DB
 echo "Pushing database schema..."
-prisma db push --accept-data-loss
+npx prisma db push --accept-data-loss
 PUSH_EXIT_CODE=$?
 if [ $PUSH_EXIT_CODE -ne 0 ]; then
     echo "ERROR: prisma db push failed with exit code $PUSH_EXIT_CODE"

@@ -14,11 +14,11 @@ echo "Database is up!"
 
 # Force regenerate client at runtime
 echo "Regenerating Prisma Client..."
-npx prisma generate
+./node_modules/.bin/prisma generate --schema=./prisma/schema.prisma
 
 # Push schema to DB
 echo "Pushing database schema..."
-npx prisma db push --accept-data-loss
+./node_modules/.bin/prisma db push --schema=./prisma/schema.prisma --accept-data-loss --skip-generate
 PUSH_EXIT_CODE=$?
 if [ $PUSH_EXIT_CODE -ne 0 ]; then
     echo "ERROR: prisma db push failed with exit code $PUSH_EXIT_CODE"

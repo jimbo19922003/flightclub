@@ -27,7 +27,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
-  @@map("Account")
+  @@map("accounts")
 }
 
 model Session {
@@ -37,7 +37,7 @@ model Session {
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("Session")
+  @@map("sessions")
 }
 
 model ClubSettings {
@@ -66,7 +66,7 @@ model ClubSettings {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
-  @@map("ClubSettings")
+  @@map("club_settings")
 }
 
 enum ClubType {
@@ -89,7 +89,7 @@ model MembershipTier {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
-  @@map("MembershipTier")
+  @@map("membership_tiers")
 }
 
 model User {
@@ -116,7 +116,7 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  @@map("User")
+  @@map("users")
 }
 
 enum UserRole {
@@ -151,7 +151,7 @@ model Aircraft {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  @@map("Aircraft")
+  @@map("aircraft")
 }
 
 enum AircraftStatus {
@@ -179,7 +179,7 @@ model Reservation {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@map("Reservation")
+  @@map("reservations")
 }
 
 enum ReservationType {
@@ -213,7 +213,7 @@ model FlightLog {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  @@map("FlightLog")
+  @@map("flight_logs")
 }
 
 model MaintenanceLog {
@@ -232,7 +232,7 @@ model MaintenanceLog {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@map("MaintenanceLog")
+  @@map("maintenance_logs")
 }
 
 enum MaintenanceType {
@@ -259,7 +259,7 @@ model Invoice {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@map("Invoice")
+  @@map("invoices")
 }
 
 model InvoiceItem {
@@ -272,7 +272,7 @@ model InvoiceItem {
   
   invoice     Invoice  @relation(fields: [invoiceId], references: [id])
 
-  @@map("InvoiceItem")
+  @@map("invoice_items")
 }
 
 enum InvoiceStatus {
@@ -289,5 +289,5 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
-  @@map("VerificationToken")
+  @@map("verification_tokens")
 }

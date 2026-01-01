@@ -24,6 +24,8 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED 1
 
 RUN npm run build || true
+# Prune development dependencies (but keep packages needed for start script like prisma)
+# RUN npm prune --production # Removed to ensure all deps are available for runtime tasks
 
 # Production image, copy all the files and run next
 FROM base AS runner

@@ -35,9 +35,7 @@ ENV NEXT_TELEMETRY_DISABLED 1
 
 RUN apk add --no-cache openssl
 RUN npm install -g prisma ts-node typescript
-# Ensure client is generated for the runner
-RUN npx prisma generate
-RUN npx prisma generate
+# Prisma files not yet copied in this stage
 RUN npm cache clean --force
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs

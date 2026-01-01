@@ -42,6 +42,11 @@ model ClubSettings {
   name                  String   @default("My Flight Club")
   type                  ClubType @default(EQUITY)
   
+  // Location & Localization
+  homeAirport           String   @default("KOSH") // ICAO code
+  currency              String   @default("USD")
+  timezone              String   @default("America/Chicago")
+  
   // Billing
   monthlyDues           Float    @default(0.0)
   billingCycleDay       Int      @default(1)
@@ -53,7 +58,7 @@ model ClubSettings {
   // Integrations
   googleCalendarId      String?
   stripePublicKey       String?
-  stripeSecretKey       String? // In real app, encrypt or use env
+  stripeSecretKey       String? 
   
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt

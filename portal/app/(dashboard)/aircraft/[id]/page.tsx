@@ -2,10 +2,12 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { format } from "date-fns";
+import { Plane, ExternalLink } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
 
 async function getAircraft(id: string) {
+    // ... existing implementation
     try {
         const aircraft = await prisma.aircraft.findUnique({
             where: { id },
@@ -93,25 +95,21 @@ export default async function AircraftDetailPage({ params }: { params: Promise<{
               </div>
           </div>
 
-          {/* Flight Tracking Iframe */}
-          <div className="bg-white rounded-xl shadow border overflow-hidden flex flex-col h-[400px]">
-              <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
-                  <h2 className="font-bold text-gray-900">Live Tracking</h2>
-                  <a href={flightAwareUrl} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline">
-                      View on FlightAware &rarr;
-                  </a>
-              </div>
-              <div className="flex-1 relative">
-                  {/* FlightAware doesn't easily allow direct iframing of the main page due to headers, 
-                      but we can try or provide a fallback. Many flight trackers block iframes. 
-                      We will attempt it, but the link above is the backup. */}
-                  <iframe 
-                    src={flightAwareUrl} 
-                    className="w-full h-full border-0"
-                    title="Flight Tracking"
-                    sandbox="allow-scripts allow-same-origin allow-popups"
-                  />
-              </div>
+          {/* Flight Tracking Card (Replaces blocked Iframe) */}
+          <div className="bg-white rounded-xl shadow border overflow-hidden flex flex-col h-[400px] items-center justify-center bg-slate-50 text-center p-6">
+              <Plane size={48} className="text-slate-400 mb-4" />
+              <h3 className="text-lg font-medium text-slate-900">Live Flight Tracking</h3>
+              <p className="text-slate-500 mb-6 max-w-xs">
+                  View real-time flight path, altitude, and speed data on FlightAware.
+              </p>
+              <a 
+                  href={flightAwareUrl} 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 font-bold flex items-center"
+              >
+                  Open FlightAware <ExternalLink size={16} className="ml-2" />
+              </a>
           </div>
       </div>
 

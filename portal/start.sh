@@ -1,17 +1,29 @@
 #!/bin/sh
-set -e
+# Do not exit on error, just log and continue
+set +e
 
-# Wait for the database to be ready (simple sleep for now, could be robustified)
-echo "Waiting for database to be ready..."
+echo "Starting deployment script..."
+
+# Wait for the database to be ready
+echo "Waiting 5s for database..."
 sleep 5
 
-# Push schema to DB (using db push for dev environment to avoid migration file dependency)
+# Push schema to DB
 echo "Pushing database schema..."
-npx prisma db push --accept-data-loss
+prisma db push --accept-data-loss
+if [ $? -ne 0 ]; then
+    echo "WARNING: prisma db push failed!"
+fi
 
-# Run seed
+# Run seed using global ts-node to avoid dependency issues in standalone mode
 echo "Seeding database..."
-npm run seed || echo "Seeding failed, continuing..."
+# We need to link the global packages or ensure they can find the local modules
+export NODE_PATH=/usr/local/lib/node_modules:/app/node_modules
+
+ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed.ts
+if [ $? -ne 0 ]; then
+    echo "WARNING: Seeding failed!"
+fi
 
 # Start the application
 echo "Starting application..."

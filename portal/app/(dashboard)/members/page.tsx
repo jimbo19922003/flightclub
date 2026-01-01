@@ -41,7 +41,11 @@ export default async function MembersPage() {
           <tbody className="bg-white divide-y divide-gray-200">
             {members.map((member) => (
               <tr key={member.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{member.name || 'N/A'}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <Link href={`/members/${member.id}`} className="hover:text-blue-600 hover:underline">
+                        {member.name || 'N/A'}
+                    </Link>
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{member.email}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">

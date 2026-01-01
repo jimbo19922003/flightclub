@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import Link from "next/link";
 
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +37,9 @@ export default async function AircraftPage() {
              <div className="p-6">
                 <div className="flex justify-between items-start">
                     <div>
-                        <h2 className="text-xl font-bold text-gray-900">{plane.registration}</h2>
+                        <Link href={`/aircraft/${plane.id}`} className="text-xl font-bold text-gray-900 hover:text-blue-600 hover:underline">
+                            {plane.registration}
+                        </Link>
                         <p className="text-sm text-gray-500">{plane.year} {plane.make} {plane.model}</p>
                     </div>
                     <span className={`px-2 py-1 text-xs font-semibold rounded-full 

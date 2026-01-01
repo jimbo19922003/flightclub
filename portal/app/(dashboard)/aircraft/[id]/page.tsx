@@ -7,7 +7,6 @@ import { Plane, ExternalLink } from "lucide-react";
 export const dynamic = 'force-dynamic';
 
 async function getAircraft(id: string) {
-    // ... existing implementation
     try {
         const aircraft = await prisma.aircraft.findUnique({
             where: { id },
@@ -37,8 +36,11 @@ export default async function AircraftDetailPage({ params }: { params: Promise<{
       notFound();
   }
 
-  // Determine flight tracking URL
+  // Determine flight tracking URLs
   const flightAwareUrl = `https://www.flightaware.com/live/flight/${aircraft.registration}`;
+  const adsbExchangeUrl = aircraft.icaoHex 
+    ? `https://globe.adsbexchange.com/?icao=${aircraft.icaoHex}`
+    : null;
 
   return (
     <div className="space-y-6">
@@ -47,7 +49,10 @@ export default async function AircraftDetailPage({ params }: { params: Promise<{
             <h1 className="text-3xl font-bold tracking-tight">{aircraft.registration}</h1>
             <p className="text-gray-500">{aircraft.year} {aircraft.make} {aircraft.model}</p>
          </div>
-         <Link href="/aircraft" className="text-gray-600 hover:text-gray-900">Back to Fleet</Link>
+         <div className="flex gap-4">
+             <Link href={`/aircraft/${aircraft.id}/edit`} className="bg-white border text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-md font-medium">Edit</Link>
+             <Link href="/aircraft" className="text-gray-600 hover:text-gray-900 self-center">Back to Fleet</Link>
+         </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -76,6 +81,12 @@ export default async function AircraftDetailPage({ params }: { params: Promise<{
                       <span className="block text-sm text-gray-500">Tach Meter</span>
                       <span className="font-mono text-lg">{aircraft.currentTach.toFixed(1)}</span>
                   </div>
+                  {aircraft.icaoHex && (
+                      <div className="col-span-2">
+                          <span className="block text-sm text-gray-500">ADS-B Hex (ICAO)</span>
+                          <span className="font-mono text-sm">{aircraft.icaoHex}</span>
+                      </div>
+                  )}
               </div>
               
               <div className="pt-4 border-t">
@@ -95,22 +106,38 @@ export default async function AircraftDetailPage({ params }: { params: Promise<{
               </div>
           </div>
 
-          {/* Flight Tracking Card (Replaces blocked Iframe) */}
-          <div className="bg-white rounded-xl shadow border overflow-hidden flex flex-col h-[400px] items-center justify-center bg-slate-50 text-center p-6">
-              <Plane size={48} className="text-slate-400 mb-4" />
-              <h3 className="text-lg font-medium text-slate-900">Live Flight Tracking</h3>
-              <p className="text-slate-500 mb-6 max-w-xs">
-                  View real-time flight path, altitude, and speed data on FlightAware.
-              </p>
-              <a 
-                  href={flightAwareUrl} 
-                  target="_blank" 
-                  rel="noreferrer" 
-                  className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 font-bold flex items-center"
-              >
-                  Open FlightAware <ExternalLink size={16} className="ml-2" />
-              </a>
-          </div>
+          {/* Flight Tracking Card */}
+          {adsbExchangeUrl ? (
+            <div className="bg-white rounded-xl shadow border overflow-hidden flex flex-col h-[400px]">
+                <div className="bg-gray-50 p-2 text-xs text-center border-b flex justify-between items-center px-4">
+                     <span className="text-gray-500">Powered by ADS-B Exchange</span>
+                     <a href={flightAwareUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline flex items-center">
+                        Alt: FlightAware <ExternalLink size={10} className="ml-1"/>
+                     </a>
+                </div>
+                <iframe 
+                    src={adsbExchangeUrl}
+                    className="w-full h-full"
+                    title="Live Flight Tracking"
+                />
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl shadow border overflow-hidden flex flex-col h-[400px] items-center justify-center bg-slate-50 text-center p-6">
+                <Plane size={48} className="text-slate-400 mb-4" />
+                <h3 className="text-lg font-medium text-slate-900">Live Flight Tracking</h3>
+                <p className="text-slate-500 mb-6 max-w-xs">
+                    Configure <strong>ADS-B Hex Code</strong> to enable native map embedding.
+                </p>
+                <a 
+                    href={flightAwareUrl} 
+                    target="_blank" 
+                    rel="noreferrer" 
+                    className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 font-bold flex items-center"
+                >
+                    Open FlightAware <ExternalLink size={16} className="ml-2" />
+                </a>
+            </div>
+          )}
       </div>
 
       {/* Maintenance History */}

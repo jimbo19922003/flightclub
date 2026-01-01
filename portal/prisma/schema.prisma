@@ -148,6 +148,7 @@ model Aircraft {
   nextAnnual    DateTime?
   next100Hour   Float?
   nextOilChange Float?
+  icaoHex       String?   // Unique ICAO 24-bit address for ADS-B tracking
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

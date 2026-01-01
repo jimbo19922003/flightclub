@@ -1,16 +1,31 @@
-import { createAircraft } from "@/app/actions/aircraft";
+import { updateAircraft } from "@/app/actions/aircraft";
+import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
-export default function NewAircraftPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function EditAircraftPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const aircraft = await prisma.aircraft.findUnique({
+      where: { id }
+  });
+
+  if (!aircraft) {
+      notFound();
+  }
+
+  const updateAircraftWithId = updateAircraft.bind(null, id);
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-         <h1 className="text-3xl font-bold tracking-tight">Add New Aircraft</h1>
-         <Link href="/aircraft" className="text-gray-600 hover:text-gray-900">Cancel</Link>
+         <h1 className="text-3xl font-bold tracking-tight">Edit Aircraft</h1>
+         <Link href={`/aircraft/${id}`} className="text-gray-600 hover:text-gray-900">Cancel</Link>
       </div>
       
       <div className="bg-white rounded-xl shadow border p-6">
-        <form action={createAircraft} className="space-y-4">
+        <form action={updateAircraftWithId} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Registration (Tail #)</label>
@@ -18,7 +33,7 @@ export default function NewAircraftPage() {
                         type="text" 
                         name="registration" 
                         required
-                        placeholder="N12345"
+                        defaultValue={aircraft.registration}
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
                     />
                 </div>
@@ -27,19 +42,8 @@ export default function NewAircraftPage() {
                     <input 
                         type="text" 
                         name="icaoHex" 
-                        placeholder="e.g. A51D23 (Optional for Live Map)"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
-                    />
-                </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Year</label>
-                    <input 
-                        type="number" 
-                        name="year" 
-                        required
+                        defaultValue={aircraft.icaoHex || ""}
+                        placeholder="e.g. A51D23"
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
                     />
                 </div>
@@ -52,6 +56,7 @@ export default function NewAircraftPage() {
                         type="text" 
                         name="make" 
                         required
+                        defaultValue={aircraft.make}
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
                     />
                 </div>
@@ -61,8 +66,35 @@ export default function NewAircraftPage() {
                         type="text" 
                         name="model" 
                         required
+                        defaultValue={aircraft.model}
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
                     />
+                </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Year</label>
+                    <input 
+                        type="number" 
+                        name="year" 
+                        required
+                        defaultValue={aircraft.year}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Status</label>
+                    <select
+                        name="status"
+                        defaultValue={aircraft.status}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
+                    >
+                        <option value="AVAILABLE">Available</option>
+                        <option value="MAINTENANCE">Maintenance</option>
+                        <option value="GROUNDED">Grounded</option>
+                        <option value="IN_USE">In Use</option>
+                    </select>
                 </div>
             </div>
 
@@ -76,6 +108,7 @@ export default function NewAircraftPage() {
                         name="hourlyRate" 
                         step="0.01"
                         required
+                        defaultValue={aircraft.hourlyRate}
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
                     />
                 </div>
@@ -86,6 +119,7 @@ export default function NewAircraftPage() {
                         name="currentHobbs" 
                         step="0.1"
                         required
+                        defaultValue={aircraft.currentHobbs}
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
                     />
                 </div>
@@ -96,6 +130,7 @@ export default function NewAircraftPage() {
                         name="currentTach" 
                         step="0.1"
                         required
+                        defaultValue={aircraft.currentTach}
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
                     />
                 </div>
@@ -106,7 +141,7 @@ export default function NewAircraftPage() {
                     type="submit"
                     className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 font-bold"
                 >
-                    Add Aircraft
+                    Save Changes
                 </button>
             </div>
         </form>

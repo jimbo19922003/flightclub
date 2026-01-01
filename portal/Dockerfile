@@ -33,9 +33,8 @@ ENV NODE_ENV production
 # Uncomment the following line in case you want to disable telemetry during runtime.
 ENV NEXT_TELEMETRY_DISABLED 1
 
-RUN apk add --no-cache openssl
-RUN npm install -g prisma ts-node typescript
-# Prisma files not yet copied in this stage
+RUN apk add --no-cache libc6-compat openssl netcat-openbsd postgresql-client
+RUN npm install -g ts-node typescript
 RUN npm cache clean --force
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs

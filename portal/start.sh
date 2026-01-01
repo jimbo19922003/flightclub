@@ -5,21 +5,20 @@ echo "Starting deployment script..."
 
 # Robust wait for database
 echo "Waiting for database connection..."
-until nc -z -v -w30 db 5432
+until pg_isready -h db -p 5432 -U postgres
 do
   echo "Waiting for database connection..."
-  # wait for 2 seconds before check again
   sleep 2
 done
 echo "Database is up!"
 
-# Force regenerate client at runtime to match current schema
+# Force regenerate client at runtime
 echo "Regenerating Prisma Client..."
-prisma generate --schema=./prisma/schema.prisma
+npx prisma generate
 
 # Push schema to DB
 echo "Pushing database schema..."
-prisma db push --schema=./prisma/schema.prisma --accept-data-loss
+npx prisma db push --accept-data-loss
 PUSH_EXIT_CODE=$?
 if [ $PUSH_EXIT_CODE -ne 0 ]; then
     echo "ERROR: prisma db push failed with exit code $PUSH_EXIT_CODE"

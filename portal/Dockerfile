@@ -1,70 +1,32 @@
-FROM node:20-alpine AS base
+FROM node:20-bookworm-slim
 
-# Install dependencies only when needed
-FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat openssl netcat-openbsd
 WORKDIR /app
 
-# Install dependencies based on the preferred package manager
+# Install system dependencies required for Prisma and health checks
+RUN apt-get update -y && apt-get install -y openssl netcat-openbsd procps && rm -rf /var/lib/apt/lists/*
+
+# Copy package files
 COPY package.json package-lock.json* ./
-RUN npm ci
-COPY prisma ./prisma
-RUN npx prisma generate
 
-# Rebuild the source code only when needed
-FROM base AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+# Install ALL dependencies (including dev deps for Prisma CLI)
+RUN npm ci
+
+# Copy the rest of the application
 COPY . .
 
-# Next.js collects completely anonymous telemetry data about general usage.
-# Learn more here: https://nextjs.org/telemetry
-# Uncomment the following line in case you want to disable telemetry during the build.
-ENV NEXT_TELEMETRY_DISABLED 1
+# Generate Prisma Client
+RUN npx prisma generate
 
-RUN npm run build || true
-# Prune development dependencies (but keep packages needed for start script like prisma)
-# RUN npm prune --production # Removed to ensure all deps are available for runtime tasks
+# Build the Next.js application
+RUN npm run build
 
-# Production image, copy all the files and run next
-FROM base AS runner
-WORKDIR /app
-
-ENV NODE_ENV production
-# Uncomment the following line in case you want to disable telemetry during runtime.
-ENV NEXT_TELEMETRY_DISABLED 1
-
-RUN apk add --no-cache libc6-compat openssl netcat-openbsd postgresql-client
-RUN npm install -g prisma ts-node typescript
-RUN npm cache clean --force
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-COPY --from=builder /app/public ./public
-
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
-
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-COPY --from=builder --chown=nextjs:nodejs /app/start.sh ./start.sh
-
-    
-# Create a writable directory for Prisma engines/cache
-RUN mkdir -p /app/.cache/prisma && chown -R nextjs:nodejs /app/.cache
-
-ENV XDG_CACHE_HOME=/app/.cache
-
-USER nextjs
-
+# Expose port
 EXPOSE 3000
-
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
+
+# Copy startup script and make executable
+COPY start.sh ./start.sh
+RUN chmod +x ./start.sh
 
 CMD ["./start.sh"]

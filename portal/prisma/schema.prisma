@@ -37,6 +37,49 @@ model Session {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model ClubSettings {
+  id                    String   @id @default(cuid())
+  name                  String   @default("My Flight Club")
+  type                  ClubType @default(EQUITY)
+  
+  // Billing
+  monthlyDues           Float    @default(0.0)
+  billingCycleDay       Int      @default(1)
+  
+  // Rules
+  maxReservationsPerUser Int     @default(3)
+  maxReservationDays    Int      @default(3)
+  
+  // Integrations
+  googleCalendarId      String?
+  stripePublicKey       String?
+  stripeSecretKey       String? // In real app, encrypt or use env
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+enum ClubType {
+  EQUITY
+  NON_PROFIT
+  COMMERCIAL
+}
+
+model MembershipTier {
+  id                    String   @id @default(cuid())
+  name                  String   // e.g. "Full Share", "Half Share", "Social"
+  monthlyDues           Float
+  maxReservations       Int
+  maxDaysPerReservation Int
+  bookingWindowDays     Int      @default(90) // How far in advance they can book
+  hourlyRateDiscount    Float    @default(0.0) // Percentage discount on aircraft rates
+  
+  users                 User[]
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -44,6 +87,11 @@ model User {
   emailVerified DateTime?
   image         String?
   role          UserRole  @default(MEMBER)
+  
+  // Relations
+  membershipTierId String?
+  membershipTier   MembershipTier? @relation(fields: [membershipTierId], references: [id])
+  
   shareSize     Float     @default(1.0) // 1.0 = full share, 0.5 = half share
   balance       Float     @default(0.0)
   

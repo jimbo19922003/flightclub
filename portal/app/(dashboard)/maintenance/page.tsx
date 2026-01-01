@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
 import { Wrench, AlertTriangle, CheckCircle } from "lucide-react";
+import Link from "next/link";
 
 export const dynamic = 'force-dynamic';
 
@@ -28,9 +29,9 @@ export default async function MaintenancePage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold tracking-tight">Maintenance Tracking</h1>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+        <Link href="/maintenance/new" className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
           Record Maintenance
-        </button>
+        </Link>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

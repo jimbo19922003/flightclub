@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import Link from "next/link";
 
 export const dynamic = 'force-dynamic';
 
@@ -20,9 +21,9 @@ export default async function AircraftPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold tracking-tight">Aircraft Fleet</h1>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+        <Link href="/aircraft/new" className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
           Add Aircraft
-        </button>
+        </Link>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

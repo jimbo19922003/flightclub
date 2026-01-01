@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
+import { generateMonthlyInvoices } from "@/app/actions/billing";
 
 export const dynamic = 'force-dynamic';
 
@@ -25,9 +26,11 @@ export default async function BillingPage() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <h1 className="text-3xl font-bold tracking-tight">Billing & Invoices</h1>
-                <button className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
-                    Generate Monthly Invoices
-                </button>
+                <form action={generateMonthlyInvoices}>
+                    <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                        Generate Monthly Invoices
+                    </button>
+                </form>
             </div>
             
             <div className="bg-white rounded-xl shadow border overflow-hidden">

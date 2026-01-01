@@ -88,6 +88,39 @@ async function main() {
     },
   })
 
+  // Create Default Club Settings
+  const settings = await prisma.clubSettings.findFirst()
+  if (!settings) {
+    await prisma.clubSettings.create({
+      data: {
+        name: 'My Flight Club',
+        type: 'EQUITY',
+        homeAirport: 'KOSH',
+        currency: 'USD',
+        timezone: 'America/Chicago',
+        monthlyDues: 100.0,
+        billingCycleDay: 1,
+        maxReservationsPerUser: 3,
+        maxReservationDays: 7,
+      }
+    })
+  }
+
+  // Create Default Membership Tier
+  const fullShare = await prisma.membershipTier.findFirst({ where: { name: 'Full Share' } })
+  if (!fullShare) {
+    await prisma.membershipTier.create({
+      data: {
+        name: 'Full Share',
+        monthlyDues: 100.0,
+        maxReservations: 4,
+        maxDaysPerReservation: 7,
+        bookingWindowDays: 90,
+        hourlyRateDiscount: 10.0, // 10% off
+      }
+    })
+  }
+
   console.log(`Seeding finished.`)
 }
 

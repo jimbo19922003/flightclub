@@ -5,9 +5,9 @@ set -e
 echo "Waiting for database to be ready..."
 sleep 5
 
-# Run migrations
-echo "Running database migrations..."
-prisma migrate deploy || echo "Migration failed, continuing..."
+# Push schema to DB (using db push for dev environment to avoid migration file dependency)
+echo "Pushing database schema..."
+npx prisma db push --accept-data-loss
 
 # Run seed
 echo "Seeding database..."

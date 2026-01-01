@@ -1,19 +1,25 @@
 import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
 async function main() {
   console.log('Start seeding ...')
 
+  const hashedPassword = await bcrypt.hash('AdminLogin2Day', 10)
+
   // Create Users
   const admin = await prisma.user.upsert({
     where: { email: 'admin@flightclub.com' },
-    update: {},
+    update: {
+      password: hashedPassword // Ensure password is set if user exists
+    },
     create: {
       email: 'admin@flightclub.com',
       name: 'Admin User',
       role: 'ADMIN',
       shareSize: 1.0,
+      password: hashedPassword,
     },
   })
   

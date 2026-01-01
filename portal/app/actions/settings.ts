@@ -73,10 +73,32 @@ export async function createMembershipTier(formData: FormData) {
     revalidatePath("/settings");
 }
 
+import bcrypt from "bcryptjs";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../api/auth/[...nextauth]/route";
+
 export async function deleteMembershipTier(id: string) {
     // In a real app, check if users are assigned to this tier first!
     await prisma.membershipTier.delete({
         where: { id }
     });
+    revalidatePath("/settings");
+}
+
+export async function updatePassword(formData: FormData) {
+    const password = formData.get("password") as string;
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user || !session.user.email) {
+        throw new Error("Not authenticated");
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await prisma.user.update({
+        where: { email: session.user.email },
+        data: { password: hashedPassword }
+    });
+
     revalidatePath("/settings");
 }

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { updateClubSettings, createMembershipTier } from "@/app/actions/settings";
+import { updateClubSettings, createMembershipTier, updatePassword } from "@/app/actions/settings";
 import { DeleteTierButton } from "@/components/DeleteTierButton";
 
 export const dynamic = 'force-dynamic';
@@ -200,6 +200,22 @@ export default async function SettingsPage() {
                     <button type="submit" className="w-full bg-slate-800 text-white px-4 py-2 rounded-md hover:bg-slate-900 font-bold">Create Tier</button>
                 </form>
             </div>
+        </div>
+      </section>
+
+      <hr />
+
+      <section className="space-y-4">
+        <h2 className="text-2xl font-bold text-gray-800">Security</h2>
+        <div className="bg-white rounded-xl shadow border p-6">
+            <h3 className="text-lg font-bold text-gray-900 border-b pb-2 mb-4">Change Password</h3>
+            <form action={updatePassword} className="space-y-4 max-w-md">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">New Password</label>
+                    <input type="password" name="password" required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"/>
+                </div>
+                <button type="submit" className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 font-bold">Update Password</button>
+            </form>
         </div>
       </section>
     </div>

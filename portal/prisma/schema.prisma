@@ -27,6 +27,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@map("Account")
 }
 
 model Session {
@@ -35,6 +36,8 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("Session")
 }
 
 model ClubSettings {
@@ -62,6 +65,8 @@ model ClubSettings {
   
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
+
+  @@map("ClubSettings")
 }
 
 enum ClubType {
@@ -83,6 +88,8 @@ model MembershipTier {
   
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
+
+  @@map("MembershipTier")
 }
 
 model User {
@@ -108,6 +115,8 @@ model User {
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  @@map("User")
 }
 
 enum UserRole {
@@ -141,6 +150,8 @@ model Aircraft {
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  @@map("Aircraft")
 }
 
 enum AircraftStatus {
@@ -167,6 +178,8 @@ model Reservation {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("Reservation")
 }
 
 enum ReservationType {
@@ -199,6 +212,8 @@ model FlightLog {
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  @@map("FlightLog")
 }
 
 model MaintenanceLog {
@@ -216,6 +231,8 @@ model MaintenanceLog {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@map("MaintenanceLog")
 }
 
 enum MaintenanceType {
@@ -241,6 +258,8 @@ model Invoice {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@map("Invoice")
 }
 
 model InvoiceItem {
@@ -252,6 +271,8 @@ model InvoiceItem {
   amount      Float
   
   invoice     Invoice  @relation(fields: [invoiceId], references: [id])
+
+  @@map("InvoiceItem")
 }
 
 enum InvoiceStatus {
@@ -268,4 +289,5 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+  @@map("VerificationToken")
 }

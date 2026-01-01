@@ -35,6 +35,8 @@ ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed.ts
 SEED_EXIT_CODE=$?
 if [ $SEED_EXIT_CODE -ne 0 ]; then
     echo "WARNING: Seeding failed with exit code $SEED_EXIT_CODE"
+    # Fallback: if seed fails, we try to create the missing table via raw SQL or just log it
+    # But usually db push should have created it.
 else
     echo "Database seeded successfully."
 fi

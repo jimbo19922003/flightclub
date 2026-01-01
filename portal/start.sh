@@ -12,19 +12,32 @@ do
 done
 echo "Database is up!"
 
+# Debug: Check if we can list tables (verifies auth and DB existence)
+echo "Verifying database access..."
+PGPASSWORD=postgres psql -h db -U postgres -d flightclub -c "\dt" || echo "Warning: Could not list tables, but proceeding..."
+
 # Force regenerate client at runtime
 echo "Regenerating Prisma Client..."
 ./node_modules/.bin/prisma generate --schema=./prisma/schema.prisma
 
-# Push schema to DB
-echo "Pushing database schema..."
-./node_modules/.bin/prisma db push --schema=./prisma/schema.prisma --accept-data-loss --skip-generate
-PUSH_EXIT_CODE=$?
-if [ $PUSH_EXIT_CODE -ne 0 ]; then
-    echo "ERROR: prisma db push failed with exit code $PUSH_EXIT_CODE"
-    # Attempt to continue, but likely will fail
-else
-    echo "Database schema pushed successfully."
+# Retry loop for db push
+MAX_RETRIES=5
+COUNT=0
+while [ $COUNT -lt $MAX_RETRIES ]; do
+    echo "Attempting to push schema (Try $((COUNT+1))/$MAX_RETRIES)..."
+    ./node_modules/.bin/prisma db push --schema=./prisma/schema.prisma --accept-data-loss --skip-generate
+    if [ $? -eq 0 ]; then
+        echo "Schema push successful!"
+        break
+    fi
+    echo "Schema push failed. Retrying in 5 seconds..."
+    sleep 5
+    COUNT=$((COUNT+1))
+done
+
+if [ $COUNT -eq $MAX_RETRIES ]; then
+    echo "ERROR: Failed to push schema after $MAX_RETRIES attempts. Exiting."
+    exit 1
 fi
 
 # Run seed

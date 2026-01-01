@@ -54,6 +54,12 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/start.sh ./start.sh
 
+    
+# Create a writable directory for Prisma engines/cache
+RUN mkdir -p /app/.cache/prisma && chown -R nextjs:nodejs /app/.cache
+
+ENV XDG_CACHE_HOME=/app/.cache
+
 USER nextjs
 
 EXPOSE 3000

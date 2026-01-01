@@ -36,7 +36,7 @@ ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
 RUN apk add --no-cache libc6-compat openssl netcat-openbsd postgresql-client
-RUN npm install -g ts-node typescript
+RUN npm install -g prisma ts-node typescript
 RUN npm cache clean --force
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs

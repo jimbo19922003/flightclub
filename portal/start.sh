@@ -18,14 +18,14 @@ PGPASSWORD=postgres psql -h db -U postgres -d flightclub -c "\dt" || echo "Warni
 
 # Force regenerate client at runtime
 echo "Regenerating Prisma Client..."
-./node_modules/.bin/prisma generate --schema=./prisma/schema.prisma
+prisma generate --schema=./prisma/schema.prisma
 
 # Retry loop for db push
 MAX_RETRIES=5
 COUNT=0
 while [ $COUNT -lt $MAX_RETRIES ]; do
     echo "Attempting to push schema (Try $((COUNT+1))/$MAX_RETRIES)..."
-    ./node_modules/.bin/prisma db push --schema=./prisma/schema.prisma --accept-data-loss --skip-generate
+    prisma db push --schema=./prisma/schema.prisma --accept-data-loss --skip-generate
     if [ $? -eq 0 ]; then
         echo "Schema push successful!"
         break

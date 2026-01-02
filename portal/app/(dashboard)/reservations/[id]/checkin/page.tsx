@@ -15,6 +15,15 @@ export default async function CheckInPage({ params }: { params: Promise<{ id: st
     notFound();
   }
 
+  // Fetch Preflight Checklist
+  const checklist = await prisma.checklist.findFirst({
+      where: { 
+          aircraftId: reservation.aircraftId,
+          type: 'PREFLIGHT'
+      },
+      include: { items: { orderBy: { order: 'asc' } } }
+  });
+
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
       <h1 className="text-3xl font-bold tracking-tight">Check In Flight</h1>
@@ -24,7 +33,11 @@ export default async function CheckInPage({ params }: { params: Promise<{ id: st
         </p>
       </div>
       
-      <CheckInForm reservation={reservation} aircraft={reservation.aircraft} />
+      <CheckInForm 
+        reservation={reservation} 
+        aircraft={reservation.aircraft} 
+        checklist={checklist}
+      />
     </div>
   );
 }

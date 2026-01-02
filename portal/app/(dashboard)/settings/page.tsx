@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { updateClubSettings, createMembershipTier, updatePassword } from "@/app/actions/settings";
 import { DeleteTierButton } from "@/components/DeleteTierButton";
+import FuelPriceFetcher from "@/components/FuelPriceFetcher";
 
 export const dynamic = 'force-dynamic';
 
@@ -15,13 +16,19 @@ async function getSettings() {
                  name: "My Flight Club", 
                  type: "EQUITY", 
                  homeAirport: "", 
+                 fuelPrice100LL: 6.50,
+                 fuelPriceJetA: 5.50,
+                 fuelPriceUL94: 6.00,
+                 fuelPriceLastUpdated: null,
                  currency: "USD", 
                  timezone: "America/Chicago",
                  monthlyDues: 0,
                  billingCycleDay: 1,
                  maxReservationsPerUser: 3,
                  maxReservationDays: 7,
-                 suspendOverdueDays: 10
+                 suspendOverdueDays: 10,
+                 stripePublicKey: "",
+                 stripeSecretKey: ""
              },
              tiers: []
         }
@@ -33,12 +40,15 @@ async function getSettings() {
   }
 }
 
-// Define types locally if Prisma Client types are out of sync in development
 interface ClubSettings {
   id: string;
   name: string;
   type: string;
   homeAirport: string;
+  fuelPrice100LL: number;
+  fuelPriceJetA: number;
+  fuelPriceUL94: number;
+  fuelPriceLastUpdated?: string;
   currency: string;
   timezone: string;
   monthlyDues: number;
@@ -46,6 +56,8 @@ interface ClubSettings {
   maxReservationsPerUser: number;
   maxReservationDays: number;
   suspendOverdueDays: number;
+  stripePublicKey?: string;
+  stripeSecretKey?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -79,8 +91,13 @@ export default async function SettingsPage() {
       
       {/* Club Profile Section */}
       <section className="space-y-4">
-        <h2 className="text-2xl font-bold text-gray-800">Club Profile</h2>
-        <form action={updateClubSettings} className="grid gap-6 md:grid-cols-2">
+        <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-800">Club Profile</h2>
+            <button form="club-settings-form" type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 font-bold text-sm shadow-sm">
+                Save Changes
+            </button>
+        </div>
+        <form id="club-settings-form" action={updateClubSettings} className="grid gap-6 md:grid-cols-2">
             <div className="bg-white rounded-xl shadow border p-6 space-y-4">
                 <h3 className="text-lg font-bold text-gray-900 border-b pb-2">General Info</h3>
                 
@@ -98,10 +115,39 @@ export default async function SettingsPage() {
                     </select>
                 </div>
 
-                 <div>
+                <div className="relative">
                     <label className="block text-sm font-medium text-gray-700">Home Airport (ICAO)</label>
                     <input type="text" name="homeAirport" defaultValue={settings.homeAirport} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"/>
+                    <FuelPriceFetcher />
                 </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow border p-6 space-y-4">
+                <h3 className="text-lg font-bold text-gray-900 border-b pb-2 flex justify-between items-center">
+                    Fuel Rates (Wet Rate Base)
+                    {settings.fuelPriceLastUpdated && (
+                        <span className="text-xs font-normal text-gray-500">
+                            Last Updated: {new Date(settings.fuelPriceLastUpdated).toLocaleDateString()}
+                        </span>
+                    )}
+                </h3>
+                <div className="grid grid-cols-3 gap-4">
+                     <div>
+                        <label className="block text-sm font-medium text-gray-700">100LL ($/gal)</label>
+                        <input type="number" step="0.01" name="fuelPrice100LL" defaultValue={settings.fuelPrice100LL} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"/>
+                    </div>
+                     <div>
+                        <label className="block text-sm font-medium text-gray-700">Jet A ($/gal)</label>
+                        <input type="number" step="0.01" name="fuelPriceJetA" defaultValue={settings.fuelPriceJetA} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"/>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">UL94 ($/gal)</label>
+                        <input type="number" step="0.01" name="fuelPriceUL94" defaultValue={settings.fuelPriceUL94 || 6.00} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"/>
+                    </div>
+                </div>
+                <p className="text-xs text-gray-500">
+                    These rates calculate member reimbursement when purchasing cheaper fuel off-field.
+                </p>
             </div>
 
             <div className="bg-white rounded-xl shadow border p-6 space-y-4">
@@ -145,6 +191,37 @@ export default async function SettingsPage() {
                     <label className="block text-sm font-medium text-gray-700">Default Monthly Dues ($)</label>
                     <input type="number" name="monthlyDues" defaultValue={settings.monthlyDues} step="0.01" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"/>
                 </div>
+            </div>
+
+            {/* Integrations Section (Stripe) */}
+            <div className="bg-white rounded-xl shadow border p-6 space-y-4 col-span-full">
+                <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Integrations</h3>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                     <div>
+                        <label className="block text-sm font-medium text-gray-700">Stripe Public Key</label>
+                        <input 
+                            type="text" 
+                            name="stripePublicKey" 
+                            defaultValue={settings.stripePublicKey || ''} 
+                            placeholder="pk_test_..."
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Stripe Secret Key</label>
+                        <input 
+                            type="password" 
+                            name="stripeSecretKey" 
+                            defaultValue={settings.stripeSecretKey || ''} 
+                            placeholder="sk_test_..."
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"
+                        />
+                    </div>
+                </div>
+                <p className="text-xs text-gray-500">
+                    Required for automated invoicing and payments.
+                </p>
             </div>
             
             <div className="col-span-full flex justify-end">

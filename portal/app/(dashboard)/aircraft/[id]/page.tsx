@@ -17,7 +17,7 @@ async function getAircraft(id: string) {
                 },
                 flightLogs: {
                     orderBy: { createdAt: 'desc' },
-                    take: 5,
+                    take: 10,
                     include: { user: true }
                 }
             }
@@ -107,6 +107,10 @@ export default async function AircraftDetailPage({ params }: { params: Promise<{
                           <span>Oil Change (Tach):</span>
                           <span>{aircraft.nextOilChange ? aircraft.nextOilChange.toFixed(1) : 'N/A'}</span>
                       </div>
+                      <div className="flex justify-between text-gray-400 text-xs pt-1 border-t mt-1">
+                          <span>Engine TSMOH:</span>
+                          <span>{aircraft.tsmoh ? aircraft.tsmoh.toFixed(1) : '0.0'}</span>
+                      </div>
                   </div>
               </div>
           </div>
@@ -145,34 +149,62 @@ export default async function AircraftDetailPage({ params }: { params: Promise<{
           )}
       </div>
 
-      {/* Maintenance History */}
-      <div className="bg-white rounded-xl shadow border overflow-hidden">
-          <div className="p-6 border-b">
-              <h2 className="text-xl font-bold text-gray-900">Recent Maintenance</h2>
-          </div>
-          <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                  <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tech</th>
-                  </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                  {aircraft.maintenance.map(log => (
-                      <tr key={log.id}>
-                          <td className="px-6 py-4 text-sm text-gray-900">{format(log.date, 'MMM d, yyyy')}</td>
-                          <td className="px-6 py-4 text-sm text-gray-500">{log.type}</td>
-                          <td className="px-6 py-4 text-sm text-gray-900">{log.title}</td>
-                          <td className="px-6 py-4 text-sm text-gray-500">{log.performedBy}</td>
-                      </tr>
-                  ))}
-                  {aircraft.maintenance.length === 0 && (
-                      <tr><td colSpan={4} className="px-6 py-4 text-center text-gray-500">No records found.</td></tr>
-                  )}
-              </tbody>
-          </table>
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Recent Flight History */}
+        <div className="bg-white rounded-xl shadow border overflow-hidden">
+            <div className="p-6 border-b">
+                <h2 className="text-xl font-bold text-gray-900">Recent Flights</h2>
+            </div>
+            <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                    <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pilot</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Duration</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                    {aircraft.flightLogs.map(log => (
+                        <tr key={log.id}>
+                            <td className="px-6 py-4 text-sm text-gray-900">{format(log.createdAt, 'MMM d, yyyy')}</td>
+                            <td className="px-6 py-4 text-sm text-gray-900">{log.user.name}</td>
+                            <td className="px-6 py-4 text-sm text-gray-500">{log.flightTime.toFixed(1)} hr</td>
+                        </tr>
+                    ))}
+                    {aircraft.flightLogs.length === 0 && (
+                        <tr><td colSpan={3} className="px-6 py-4 text-center text-gray-500">No recent flights.</td></tr>
+                    )}
+                </tbody>
+            </table>
+        </div>
+
+        {/* Maintenance History */}
+        <div className="bg-white rounded-xl shadow border overflow-hidden">
+            <div className="p-6 border-b">
+                <h2 className="text-xl font-bold text-gray-900">Recent Maintenance</h2>
+            </div>
+            <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                    <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                    {aircraft.maintenance.map(log => (
+                        <tr key={log.id}>
+                            <td className="px-6 py-4 text-sm text-gray-900">{format(log.date, 'MMM d, yyyy')}</td>
+                            <td className="px-6 py-4 text-sm text-gray-500">{log.type}</td>
+                            <td className="px-6 py-4 text-sm text-gray-900 truncate max-w-[150px]" title={log.title}>{log.title}</td>
+                        </tr>
+                    ))}
+                    {aircraft.maintenance.length === 0 && (
+                        <tr><td colSpan={3} className="px-6 py-4 text-center text-gray-500">No records found.</td></tr>
+                    )}
+                </tbody>
+            </table>
+        </div>
       </div>
     </div>
   );

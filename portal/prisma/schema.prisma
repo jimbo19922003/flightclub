@@ -47,6 +47,10 @@ model ClubSettings {
   
   // Location & Localization
   homeAirport           String   @default("KOSH") // ICAO code
+  fuelPrice100LL        Float    @default(6.50) // Per gallon (was homeAirportFuelPrice)
+  fuelPriceJetA         Float    @default(5.50) // Per gallon
+  fuelPriceUL94         Float    @default(6.00) // Per gallon
+  fuelPriceLastUpdated  DateTime?
   currency              String   @default("USD")
   timezone              String   @default("America/Chicago")
   
@@ -64,10 +68,28 @@ model ClubSettings {
   stripePublicKey       String?
   stripeSecretKey       String? 
   
+  holidays              ClubHoliday[]
+
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
   @@map("club_settings")
+}
+
+model ClubHoliday {
+  id             String       @id @default(cuid())
+  clubSettingsId String
+  name           String
+  startDate      DateTime
+  endDate        DateTime?    // If null, single day
+  isClosed       Boolean      @default(true) // If true, no bookings allowed
+  
+  clubSettings   ClubSettings @relation(fields: [clubSettingsId], references: [id])
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@map("club_holidays")
 }
 
 enum ClubType {
@@ -138,6 +160,7 @@ enum UserRole {
 
 enum UserStatus {
   ACTIVE
+  PAST_DUE
   SUSPENDED
   INACTIVE
 }
@@ -152,15 +175,30 @@ model Aircraft {
   status        AircraftStatus @default(AVAILABLE)
   
   hourlyRate    Float
+  rateType      AircraftRateType @default(WET) // Wet vs Dry
+  rateConfiguration Json?
+  rateLastUpdated DateTime?
+  fuelType      FuelType @default(OneHundredLL)
   
+  // Tracking
   currentHobbs  Float
   currentTach   Float
+  tsmoh         Float    @default(0.0) // Time Since Major Overhaul
+  
+  // Maintenance & Economics
+  engineTbo     Int?     // Time Between Overhauls (hours)
+  propTbo       Int?     // Prop TBO (hours)
+  overhaulCost  Float?   // Estimated Engine Overhaul Cost
+  annualCost    Float?   // Estimated Annual Cost
+  insuranceCost Float?   // Estimated Annual Insurance
+  hangarCost    Float?   // Estimated Annual Hangar
   
   reservations  Reservation[]
   maintenance   MaintenanceLog[]
   flightLogs    FlightLog[]
   schedules     MaintenanceSchedule[]
   checklists    Checklist[]
+  rateHistory   RateHistory[]
 
   // Legacy tracking fields (can be migrated to MaintenanceSchedule later)
   nextAnnual    DateTime?
@@ -175,11 +213,37 @@ model Aircraft {
   @@map("aircraft")
 }
 
+model RateHistory {
+  id                String   @id @default(cuid())
+  aircraftId        String
+  hourlyRate        Float
+  rateConfiguration Json
+  reason            String?  // e.g. "Annual Adjustment", "Fuel Price Hike"
+  
+  aircraft          Aircraft @relation(fields: [aircraftId], references: [id])
+  
+  createdAt         DateTime @default(now())
+
+  @@map("rate_history")
+}
+
 enum AircraftStatus {
   AVAILABLE
   MAINTENANCE
   GROUNDED
   IN_USE
+}
+
+enum AircraftRateType {
+  WET
+  DRY
+}
+
+enum FuelType {
+  OneHundredLL // 100LL
+  JetA
+  MoGas
+  UL94
 }
 
 model MaintenanceSchedule {

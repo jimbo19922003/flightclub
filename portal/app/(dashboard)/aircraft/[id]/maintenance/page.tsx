@@ -15,9 +15,6 @@ export default async function AircraftMaintenancePage({ params }: { params: Prom
     where: { id },
     include: { 
         maintenance: { orderBy: { date: 'desc' }, take: 10 },
-        // Fetch open squawks (flight logs with notes that haven't been resolved)
-        // Since we don't have a specific "resolved" flag on FlightLog, we can look for keywords or 
-        // rely on a naming convention. For now, let's fetch flight logs with notes that do NOT start with [RESOLVED]
         flightLogs: {
             where: {
                 notes: { not: null },
@@ -31,9 +28,7 @@ export default async function AircraftMaintenancePage({ params }: { params: Prom
 
   if (!aircraft) notFound();
 
-  // Filter out logs with empty notes if any slipped through
   const squawks = aircraft.flightLogs.filter(log => log.notes && log.notes.trim().length > 0);
-
   const statuses = await getAircraftMaintenanceStatus(id);
 
   return (
@@ -43,9 +38,14 @@ export default async function AircraftMaintenancePage({ params }: { params: Prom
             <h1 className="text-3xl font-bold tracking-tight">Maintenance Status</h1>
             <p className="text-gray-500">{aircraft.registration} - {aircraft.make} {aircraft.model}</p>
         </div>
-        <Link href={`/aircraft/${id}`} className="text-gray-600 hover:text-gray-900 font-medium">
-            Back to Aircraft
-        </Link>
+        <div className="flex gap-4">
+             <Link href={`/reservations/new?type=MAINTENANCE&aircraftId=${id}`} className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 font-medium">
+                Schedule Maintenance
+             </Link>
+             <Link href={`/aircraft/${id}`} className="text-gray-600 hover:text-gray-900 font-medium self-center">
+                Back to Aircraft
+             </Link>
+        </div>
       </div>
 
       {/* Interactive Schedule List (Client Component) */}
@@ -67,6 +67,8 @@ export default async function AircraftMaintenancePage({ params }: { params: Prom
           <div className="bg-white rounded-xl shadow border overflow-hidden">
               <div className="px-6 py-4 border-b bg-gray-50 flex justify-between items-center">
                   <h2 className="font-semibold text-gray-700">Maintenance Log History</h2>
+                  {/* Keep the generic Log Entry link or update it. existing link was /maintenance/new but that might be general. */}
+                  {/* Let's keep it but ideally it should pre-fill aircraft. */}
                   <Link href="/maintenance/new" className="text-sm bg-white border border-gray-300 px-3 py-1 rounded hover:bg-gray-50 text-gray-700">
                     + Log Entry
                   </Link>

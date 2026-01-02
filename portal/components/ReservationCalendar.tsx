@@ -16,6 +16,7 @@ type Event = {
     end: Date;
     resourceId?: string;
     status: string;
+    type: string;
 };
 
 export default function ReservationCalendar({ events }: { events: any[] }) {
@@ -24,10 +25,11 @@ export default function ReservationCalendar({ events }: { events: any[] }) {
   // Transform Prisma events to Calendar events
   const calendarEvents: Event[] = events.map(res => ({
       id: res.id,
-      title: `${res.aircraft.registration} - ${res.user.name}`,
+      title: res.type === 'MAINTENANCE' ? `MAINT: ${res.aircraft.registration}` : `${res.aircraft.registration} - ${res.user.name}`,
       start: new Date(res.startTime),
       end: new Date(res.endTime),
-      status: res.status
+      status: res.status,
+      type: res.type
   }));
 
   const eventStyleGetter = (event: Event) => {
@@ -35,6 +37,9 @@ export default function ReservationCalendar({ events }: { events: any[] }) {
       if (event.status === 'COMPLETED') backgroundColor = '#10B981'; // Green
       if (event.status === 'CHECKED_OUT') backgroundColor = '#F59E0B'; // Orange/Yellow
       if (event.status === 'CANCELLED') backgroundColor = '#EF4444'; // Red
+      
+      // Maintenance overrides
+      if (event.type === 'MAINTENANCE') backgroundColor = '#8B5CF6'; // Purple
 
       return {
           style: {
@@ -55,10 +60,16 @@ export default function ReservationCalendar({ events }: { events: any[] }) {
       } else if (event.status === 'CHECKED_OUT') {
           router.push(`/reservations/${event.id}/active`);
       } else {
-          // Just view details (not implemented yet, maybe just log for now)
-          // router.push(`/reservations/${event.id}`);
-          alert(`Reservation for ${event.title}`);
+          // TODO: Add modal for viewing details/cancelling
+          router.push(`/reservations/${event.id}/summary`);
       }
+  };
+
+  const handleSelectSlot = (slotInfo: { start: Date, end: Date }) => {
+      // Navigate to new reservation page with pre-filled dates
+      const start = slotInfo.start.toISOString();
+      const end = slotInfo.end.toISOString();
+      router.push(`/reservations/new?start=${start}&end=${end}`);
   };
 
   return (
@@ -70,6 +81,8 @@ export default function ReservationCalendar({ events }: { events: any[] }) {
         endAccessor="end"
         style={{ height: '100%' }}
         onSelectEvent={handleSelectEvent}
+        onSelectSlot={handleSelectSlot}
+        selectable
         eventPropGetter={eventStyleGetter}
         views={['month', 'week', 'day']}
         defaultView="week"

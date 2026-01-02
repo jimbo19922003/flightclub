@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { AircraftStatus } from "@prisma/client";
+import { AircraftStatus, AircraftRateType } from "@prisma/client";
 
 export async function createAircraft(formData: FormData) {
   try {
@@ -12,6 +12,7 @@ export async function createAircraft(formData: FormData) {
     const model = formData.get("model") as string;
     const year = parseInt(formData.get("year") as string);
     const hourlyRate = parseFloat(formData.get("hourlyRate") as string);
+    const rateType = formData.get("rateType") as AircraftRateType || "WET";
     const currentHobbs = parseFloat(formData.get("currentHobbs") as string);
     const currentTach = parseFloat(formData.get("currentTach") as string);
     const icaoHex = formData.get("icaoHex") as string || null;
@@ -23,6 +24,7 @@ export async function createAircraft(formData: FormData) {
         model,
         year,
         hourlyRate,
+        rateType,
         currentHobbs,
         currentTach,
         icaoHex,
@@ -45,10 +47,23 @@ export async function updateAircraft(id: string, formData: FormData) {
     const model = formData.get("model") as string;
     const year = parseInt(formData.get("year") as string);
     const hourlyRate = parseFloat(formData.get("hourlyRate") as string);
+    const rateType = formData.get("rateType") as AircraftRateType;
     const currentHobbs = parseFloat(formData.get("currentHobbs") as string);
     const currentTach = parseFloat(formData.get("currentTach") as string);
     const icaoHex = formData.get("icaoHex") as string || null;
     const statusRaw = formData.get("status") as string;
+    const rateConfigurationStr = formData.get("rateConfiguration") as string;
+    const fuelTypeRaw = formData.get("fuelType") as string;
+    
+    // Parse JSON safely
+    let rateConfiguration = undefined;
+    if (rateConfigurationStr) {
+        try {
+            rateConfiguration = JSON.parse(rateConfigurationStr);
+        } catch (e) {
+            console.error("Invalid JSON for rateConfiguration", e);
+        }
+    }
     
     // Validate status
     let status: AircraftStatus = AircraftStatus.AVAILABLE;
@@ -68,10 +83,14 @@ export async function updateAircraft(id: string, formData: FormData) {
         model,
         year,
         hourlyRate,
+        rateType,
+        fuelType: fuelTypeRaw as any, // Enum
         currentHobbs,
         currentTach,
         icaoHex,
-        status
+        status,
+        rateConfiguration: rateConfiguration || undefined,
+        rateLastUpdated: rateConfiguration ? new Date() : undefined
       }
     });
   } catch (error) {

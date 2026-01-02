@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ReservationStatus } from "@prisma/client";
+import { updateFuelPricesInDB } from "./fuel";
 
 // --- CHECK IN ---
 
@@ -13,7 +14,7 @@ export async function checkInReservation(
 ) {
   const hobbsStart = parseFloat(formData.get("hobbsStart") as string);
   const tachStart = parseFloat(formData.get("tachStart") as string);
-  const startHobbsPhotoUrl = formData.get("startHobbsPhotoUrl") as string; // Assume uploaded via client-side for now or passed as string
+  const startHobbsPhotoUrl = formData.get("startHobbsPhotoUrl") as string; 
   
   // Basic validation
   if (isNaN(hobbsStart) || isNaN(tachStart)) {
@@ -27,9 +28,17 @@ export async function checkInReservation(
 
   if (!reservation) throw new Error("Reservation not found");
 
-  // Verify meters haven't gone backwards (sanity check against aircraft current)
-  // Note: In real life, sometimes they do if mistakes were made, but let's warn or block.
-  // We'll trust the user input but update the aircraft status.
+  // Trigger async fuel price update (fire and forget essentially, or await if critical)
+  // We do it here so it's fresh for checkout (reimbursement)
+  try {
+      const settings = await prisma.clubSettings.findFirst();
+      if (settings?.homeAirport) {
+          // Don't await strictly if we want speed, but it's fast enough
+          await updateFuelPricesInDB(settings.homeAirport);
+      }
+  } catch (e) {
+      console.error("Failed to auto-update fuel prices on check-in", e);
+  }
 
   // Create Flight Log Entry
   await prisma.flightLog.create({
@@ -38,9 +47,9 @@ export async function checkInReservation(
       userId: reservation.userId,
       aircraftId: reservation.aircraftId,
       hobbsStart,
-      hobbsEnd: 0, // Placeholder
+      hobbsEnd: 0, 
       tachStart,
-      tachEnd: 0, // Placeholder
+      tachEnd: 0, 
       flightTime: 0,
       cost: 0,
       startHobbsPhotoUrl,
@@ -64,7 +73,7 @@ export async function checkInReservation(
   });
 
   revalidatePath(`/reservations/${reservationId}`);
-  redirect(`/reservations/${reservationId}/active`); // Redirect to active flight dashboard
+  redirect(`/reservations/${reservationId}/active`); 
 }
 
 // --- CHECK OUT ---
@@ -77,9 +86,11 @@ export async function checkOutReservation(
   const tachEnd = parseFloat(formData.get("tachEnd") as string);
   const fuelGallons = parseFloat(formData.get("fuelGallons") as string || "0");
   const fuelCost = parseFloat(formData.get("fuelCost") as string || "0");
-  const fuelReimbursement = parseFloat(formData.get("fuelReimbursement") as string || "0"); // If club reimburses
+  const fuelReimbursement = parseFloat(formData.get("fuelReimbursement") as string || "0"); 
   const notes = formData.get("notes") as string;
-  
+  const endHobbsPhotoUrl = formData.get("endHobbsPhotoUrl") as string;
+  const fuelReceiptUrl = formData.get("fuelReceiptUrl") as string;
+
   // 1. Get Reservation & Flight Log
   const reservation = await prisma.reservation.findUnique({
     where: { id: reservationId },
@@ -113,7 +124,9 @@ export async function checkOutReservation(
       fuelCost,
       fuelReimbursement,
       postflightComplete: true,
-      notes
+      notes,
+      endHobbsPhotoUrl,
+      fuelReceiptUrl
     }
   });
 
@@ -124,7 +137,7 @@ export async function checkOutReservation(
       currentHobbs: hobbsEnd,
       currentTach: tachEnd,
       status: "AVAILABLE",
-      // Update next maintenance due logic could go here
+      tsmoh: { increment: flightTime }
     }
   });
 
@@ -142,8 +155,8 @@ export async function checkOutReservation(
     data: {
       userId: reservation.userId,
       amount: totalCost,
-      status: "DRAFT", // Or SENT depending on workflow
-      dueDate: addDays(new Date(), 30), // 30 days terms
+      status: "DRAFT", 
+      dueDate: addDays(new Date(), 30), 
       description: `Flight: ${reservation.aircraft.registration} - ${flightTime.toFixed(1)} hrs`,
       items: {
         create: [

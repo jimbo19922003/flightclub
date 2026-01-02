@@ -91,8 +91,13 @@ export default async function SettingsPage() {
       
       {/* Club Profile Section */}
       <section className="space-y-4">
-        <h2 className="text-2xl font-bold text-gray-800">Club Profile</h2>
-        <form action={updateClubSettings} className="grid gap-6 md:grid-cols-2">
+        <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-800">Club Profile</h2>
+            <button form="club-settings-form" type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 font-bold text-sm shadow-sm">
+                Save Changes
+            </button>
+        </div>
+        <form id="club-settings-form" action={updateClubSettings} className="grid gap-6 md:grid-cols-2">
             <div className="bg-white rounded-xl shadow border p-6 space-y-4">
                 <h3 className="text-lg font-bold text-gray-900 border-b pb-2">General Info</h3>
                 

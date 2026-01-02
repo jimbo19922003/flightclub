@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { getFuelPrices } from "@/app/actions/fuel";
+import { updateFuelPricesInDB } from "@/app/actions/fuel";
 import { RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -20,7 +20,7 @@ export default function FuelPriceFetcher() {
 
     setLoading(true);
     try {
-        const prices = await getFuelPrices(airport);
+        const prices = await updateFuelPricesInDB(airport);
         
         let found = false;
         

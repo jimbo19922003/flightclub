@@ -10,8 +10,9 @@ export async function updateClubSettings(formData: FormData) {
   const name = formData.get("name") as string;
   const type = formData.get("type") as "EQUITY" | "NON_PROFIT" | "COMMERCIAL";
   const homeAirport = formData.get("homeAirport") as string;
-  const homeAirportFuelPrice = parseFloat(formData.get("fuelPrice100LL") as string);
-  const fuelPriceJetA = parseFloat(formData.get("fuelPriceJetA") as string);
+  const homeAirportFuelPrice = parseFloat(formData.get("fuelPrice100LL") as string) || 0;
+  const fuelPriceJetA = parseFloat(formData.get("fuelPriceJetA") as string) || 0;
+  const fuelPriceUL94 = parseFloat(formData.get("fuelPriceUL94") as string) || 0;
   const currency = formData.get("currency") as string;
   const timezone = formData.get("timezone") as string;
   const monthlyDues = parseFloat(formData.get("monthlyDues") as string);
@@ -34,6 +35,7 @@ export async function updateClubSettings(formData: FormData) {
         homeAirport,
         fuelPrice100LL: homeAirportFuelPrice,
         fuelPriceJetA,
+        fuelPriceUL94,
         currency,
         timezone,
         monthlyDues,
@@ -53,6 +55,7 @@ export async function updateClubSettings(formData: FormData) {
         homeAirport,
         fuelPrice100LL: homeAirportFuelPrice || 6.50,
         fuelPriceJetA: fuelPriceJetA || 5.50,
+        fuelPriceUL94: fuelPriceUL94 || 6.00,
         currency,
         timezone,
         monthlyDues,

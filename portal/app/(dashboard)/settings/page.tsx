@@ -18,6 +18,8 @@ async function getSettings() {
                  homeAirport: "", 
                  fuelPrice100LL: 6.50,
                  fuelPriceJetA: 5.50,
+                 fuelPriceUL94: 6.00,
+                 fuelPriceLastUpdated: null,
                  currency: "USD", 
                  timezone: "America/Chicago",
                  monthlyDues: 0,
@@ -45,6 +47,8 @@ interface ClubSettings {
   homeAirport: string;
   fuelPrice100LL: number;
   fuelPriceJetA: number;
+  fuelPriceUL94: number;
+  fuelPriceLastUpdated?: string;
   currency: string;
   timezone: string;
   monthlyDues: number;
@@ -114,8 +118,15 @@ export default async function SettingsPage() {
             </div>
 
             <div className="bg-white rounded-xl shadow border p-6 space-y-4">
-                <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Fuel Rates (Wet Rate Base)</h3>
-                <div className="grid grid-cols-2 gap-4">
+                <h3 className="text-lg font-bold text-gray-900 border-b pb-2 flex justify-between items-center">
+                    Fuel Rates (Wet Rate Base)
+                    {settings.fuelPriceLastUpdated && (
+                        <span className="text-xs font-normal text-gray-500">
+                            Last Updated: {new Date(settings.fuelPriceLastUpdated).toLocaleDateString()}
+                        </span>
+                    )}
+                </h3>
+                <div className="grid grid-cols-3 gap-4">
                      <div>
                         <label className="block text-sm font-medium text-gray-700">100LL ($/gal)</label>
                         <input type="number" step="0.01" name="fuelPrice100LL" defaultValue={settings.fuelPrice100LL} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"/>
@@ -123,6 +134,10 @@ export default async function SettingsPage() {
                      <div>
                         <label className="block text-sm font-medium text-gray-700">Jet A ($/gal)</label>
                         <input type="number" step="0.01" name="fuelPriceJetA" defaultValue={settings.fuelPriceJetA} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"/>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">UL94 ($/gal)</label>
+                        <input type="number" step="0.01" name="fuelPriceUL94" defaultValue={settings.fuelPriceUL94 || 6.00} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"/>
                     </div>
                 </div>
                 <p className="text-xs text-gray-500">

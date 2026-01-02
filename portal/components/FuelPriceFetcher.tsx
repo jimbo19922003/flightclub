@@ -42,6 +42,16 @@ export default function FuelPriceFetcher() {
             }
         }
 
+        if (prices?.priceUL94) {
+            const inputUL94 = document.querySelector('input[name="fuelPriceUL94"]') as HTMLInputElement;
+            if (inputUL94) {
+                inputUL94.value = prices.priceUL94.toString();
+                inputUL94.style.backgroundColor = "#dcfce7";
+                setTimeout(() => inputUL94.style.backgroundColor = "", 2000);
+                found = true;
+            }
+        }
+
         if (!found) {
             alert(`Could not find valid fuel prices for ${airport} on AirNav.`);
         }

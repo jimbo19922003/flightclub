@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ReservationStatus } from "@prisma/client";
+import { updateFuelPricesInDB } from "./fuel";
 
 // --- CHECK IN ---
 
@@ -26,6 +27,18 @@ export async function checkInReservation(
   });
 
   if (!reservation) throw new Error("Reservation not found");
+
+  // Trigger async fuel price update (fire and forget essentially, or await if critical)
+  // We do it here so it's fresh for checkout (reimbursement)
+  try {
+      const settings = await prisma.clubSettings.findFirst();
+      if (settings?.homeAirport) {
+          // Don't await strictly if we want speed, but it's fast enough
+          await updateFuelPricesInDB(settings.homeAirport);
+      }
+  } catch (e) {
+      console.error("Failed to auto-update fuel prices on check-in", e);
+  }
 
   // Create Flight Log Entry
   await prisma.flightLog.create({

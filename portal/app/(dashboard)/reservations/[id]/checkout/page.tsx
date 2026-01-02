@@ -32,6 +32,8 @@ export default async function CheckOutPage({ params }: { params: Promise<{ id: s
   let homeAirportFuelPrice = settings?.fuelPrice100LL || 0;
   if (reservation.aircraft.fuelType === 'JetA') {
       homeAirportFuelPrice = settings?.fuelPriceJetA || 0;
+  } else if (reservation.aircraft.fuelType === 'UL94') {
+      homeAirportFuelPrice = settings?.fuelPriceUL94 || 0;
   }
   
   // Fetch Postflight Checklist

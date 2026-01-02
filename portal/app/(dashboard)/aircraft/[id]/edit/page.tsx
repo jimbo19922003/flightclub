@@ -96,6 +96,19 @@ export default async function EditAircraftPage({ params }: { params: Promise<{ i
                         <option value="IN_USE">In Use</option>
                     </select>
                 </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Fuel Type</label>
+                    <select
+                        name="fuelType"
+                        defaultValue={aircraft.fuelType || "OneHundredLL"}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
+                    >
+                        <option value="OneHundredLL">100LL</option>
+                        <option value="JetA">Jet A</option>
+                        <option value="MoGas">MoGas</option>
+                        <option value="UL94">UL94</option>
+                    </select>
+                </div>
             </div>
 
             <hr className="my-4" />

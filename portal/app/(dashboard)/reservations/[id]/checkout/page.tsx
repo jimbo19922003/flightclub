@@ -28,6 +28,12 @@ export default async function CheckOutPage({ params }: { params: Promise<{ id: s
   
   const settings = await getSettings();
   
+  // Determine correct fuel price based on aircraft fuel type
+  let homeAirportFuelPrice = settings?.fuelPrice100LL || 0;
+  if (reservation.aircraft.fuelType === 'JetA') {
+      homeAirportFuelPrice = settings?.fuelPriceJetA || 0;
+  }
+  
   // Fetch Postflight Checklist
   const checklist = await prisma.checklist.findFirst({
       where: { 
@@ -35,7 +41,7 @@ export default async function CheckOutPage({ params }: { params: Promise<{ id: s
           type: 'POSTFLIGHT'
       },
       include: { items: { orderBy: { order: 'asc' } } }
-  });
+    });
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
@@ -50,7 +56,7 @@ export default async function CheckOutPage({ params }: { params: Promise<{ id: s
         reservation={reservation} 
         aircraft={reservation.aircraft}
         checklist={checklist}
-        homeAirportFuelPrice={settings?.homeAirportFuelPrice || 0}
+        homeAirportFuelPrice={homeAirportFuelPrice}
       />
     </div>
   );

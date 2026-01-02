@@ -1,0 +1,388 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model ClubSettings {
+  id                    String   @id @default(cuid())
+  name                  String   @default("My Flight Club")
+  type                  ClubType @default(EQUITY)
+  
+  // Location & Localization
+  homeAirport           String   @default("KOSH") // ICAO code
+  currency              String   @default("USD")
+  timezone              String   @default("America/Chicago")
+  
+  // Billing
+  monthlyDues           Float    @default(0.0)
+  billingCycleDay       Int      @default(1)
+  suspendOverdueDays    Int      @default(10) // Days past due before suspension
+  
+  // Rules
+  maxReservationsPerUser Int     @default(3)
+  maxReservationDays    Int      @default(3)
+  
+  // Integrations
+  googleCalendarId      String?
+  stripePublicKey       String?
+  stripeSecretKey       String? 
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("club_settings")
+}
+
+enum ClubType {
+  EQUITY
+  NON_PROFIT
+  COMMERCIAL
+}
+
+model MembershipTier {
+  id                    String   @id @default(cuid())
+  name                  String   // e.g. "Full Share", "Half Share", "Social"
+  monthlyDues           Float
+  
+  // Permissions & Limits
+  maxReservations       Int      @default(3)
+  maxDaysPerReservation Int      @default(3)
+  bookingWindowDays     Int      @default(90) // How far in advance they can book
+  hourlyRateDiscount    Float    @default(0.0) // Percentage discount on aircraft rates
+  
+  maxWeekendDaysPerYear Int?     // Limit on weekend usage
+  maxHolidayDays        Int?     // Limit on holiday usage
+  maxTripLengthDays     Int      @default(3)
+  overnightAllowed      Boolean  @default(true)
+  
+  users                 User[]
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("membership_tiers")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          UserRole  @default(MEMBER)
+  
+  // Relations
+  membershipTierId String?
+  membershipTier   MembershipTier? @relation(fields: [membershipTierId], references: [id])
+  
+  shareSize     Float     @default(1.0) // 1.0 = full share, 0.5 = half share
+  balance       Float     @default(0.0)
+  status        UserStatus @default(ACTIVE)
+  
+  accounts      Account[]
+  sessions      Session[]
+  reservations  Reservation[]
+  flightLogs    FlightLog[]
+  invoices      Invoice[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  MEMBER
+  INSTRUCTOR
+  MECHANIC
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  INACTIVE
+}
+
+model Aircraft {
+  id            String    @id @default(cuid())
+  registration  String    @unique // Tail number
+  make          String
+  model         String
+  year          Int
+  image         String?
+  status        AircraftStatus @default(AVAILABLE)
+  
+  hourlyRate    Float
+  
+  currentHobbs  Float
+  currentTach   Float
+  
+  reservations  Reservation[]
+  maintenance   MaintenanceLog[]
+  flightLogs    FlightLog[]
+  schedules     MaintenanceSchedule[]
+  checklists    Checklist[]
+
+  // Legacy tracking fields (can be migrated to MaintenanceSchedule later)
+  nextAnnual    DateTime?
+  next100Hour   Float?
+  nextOilChange Float?
+  
+  icaoHex       String?   // Unique ICAO 24-bit address for ADS-B tracking
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("aircraft")
+}
+
+enum AircraftStatus {
+  AVAILABLE
+  MAINTENANCE
+  GROUNDED
+  IN_USE
+}
+
+model MaintenanceSchedule {
+  id              String @id @default(cuid())
+  aircraftId      String
+  name            String // e.g. "Oil Change", "Annual"
+  intervalHours   Float? // e.g. 50.0
+  intervalMonths  Int?   // e.g. 12
+  lastPerformed   DateTime?
+  lastPerformedHours Float?
+  
+  aircraft        Aircraft @relation(fields: [aircraftId], references: [id])
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("maintenance_schedules")
+}
+
+model Checklist {
+  id          String   @id @default(cuid())
+  aircraftId  String
+  type        ChecklistType // PREFLIGHT, POSTFLIGHT
+  title       String
+  items       ChecklistItem[]
+  
+  aircraft    Aircraft @relation(fields: [aircraftId], references: [id])
+  
+  @@map("checklists")
+}
+
+model ChecklistItem {
+  id          String    @id @default(cuid())
+  checklistId String
+  text        String
+  order       Int
+  
+  checklist   Checklist @relation(fields: [checklistId], references: [id])
+  
+  @@map("checklist_items")
+}
+
+enum ChecklistType {
+  PREFLIGHT
+  POSTFLIGHT
+  EMERGENCY
+}
+
+model Reservation {
+  id          String   @id @default(cuid())
+  userId      String
+  aircraftId  String
+  startTime   DateTime
+  endTime     DateTime
+  type        ReservationType @default(FLIGHT)
+  status      ReservationStatus @default(CONFIRMED)
+  notes       String?
+  
+  checkInTime  DateTime?
+  checkOutTime DateTime?
+  
+  user      User     @relation(fields: [userId], references: [id])
+  aircraft  Aircraft @relation(fields: [aircraftId], references: [id])
+  flightLog FlightLog?
+
+  googleEventId String? // For Google Calendar Sync
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("reservations")
+}
+
+enum ReservationType {
+  FLIGHT
+  INSTRUCTION
+  MAINTENANCE
+  GROUND_SCHOOL
+}
+
+enum ReservationStatus {
+  CONFIRMED
+  CHECKED_OUT
+  COMPLETED
+  CANCELLED
+}
+
+model FlightLog {
+  id            String   @id @default(cuid())
+  reservationId String   @unique
+  userId        String
+  aircraftId    String
+  
+  // Times
+  hobbsStart    Float
+  hobbsEnd      Float
+  tachStart     Float
+  tachEnd       Float
+  flightTime    Float // Calculated usually from Hobbs
+  
+  // Cost & Fuel
+  cost          Float // Calculated based on rate * time
+  fuelGallons   Float?
+  fuelCost      Float?
+  fuelReimbursement Float? @default(0.0)
+  
+  // Photos & Docs
+  fuelReceiptUrl    String?
+  startHobbsPhotoUrl String?
+  endHobbsPhotoUrl   String?
+  
+  // Checklists
+  preflightComplete Boolean @default(false)
+  postflightComplete Boolean @default(false)
+  
+  notes         String?
+  
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+  user          User        @relation(fields: [userId], references: [id])
+  aircraft      Aircraft    @relation(fields: [aircraftId], references: [id])
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("flight_logs")
+}
+
+model MaintenanceLog {
+  id          String   @id @default(cuid())
+  aircraftId  String
+  title       String
+  description String?
+  date        DateTime
+  type        MaintenanceType
+  
+  cost        Float?
+  performedBy String?
+  
+  aircraft    Aircraft @relation(fields: [aircraftId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("maintenance_logs")
+}
+
+enum MaintenanceType {
+  ANNUAL
+  ONE_HUNDRED_HOUR
+  OIL_CHANGE
+  REPAIR
+  UPGRADE
+  AD_COMPLIANCE
+}
+
+model Invoice {
+  id          String   @id @default(cuid())
+  userId      String
+  amount      Float
+  status      InvoiceStatus @default(DRAFT)
+  dueDate     DateTime
+  description String?
+  
+  paidAt      DateTime?
+  stripePaymentIntentId String?
+  
+  items       InvoiceItem[]
+  
+  user        User     @relation(fields: [userId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("invoices")
+}
+
+model InvoiceItem {
+  id          String   @id @default(cuid())
+  invoiceId   String
+  description String
+  quantity    Float    @default(1.0)
+  unitPrice   Float
+  amount      Float
+  
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id])
+
+  @@map("invoice_items")
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+  VOID
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}

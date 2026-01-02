@@ -18,40 +18,47 @@ export async function getFuelPrices(icao: string) {
     const html = await response.text();
     const $ = cheerio.load(html);
     
-    let prices: number[] = [];
+    let prices100LL: number[] = [];
+    let pricesJetA: number[] = [];
 
     // Find all tables that seem to be FBO tables
     $('table').each((i, table) => {
-        // Check if table has 100LL header
-        if ($(table).text().includes('100LL')) {
+        const tableText = $(table).text();
+        
+        // Check if table has fuel headers
+        if (tableText.includes('100LL') || tableText.includes('Jet A')) {
             $(table).find('tr').each((j, row) => {
                 const tds = $(row).find('td');
                 const firstCol = $(tds[0]).text().trim();
                 
                 // Look for Full Service (FS) or Self Service (SS) rows
                 if (firstCol === 'FS' || firstCol === 'SS') {
-                    // 100LL is typically the 3rd column (index 2) based on visual inspection
-                    // But let's verify if the header "100LL" is actually above it.
-                    // Assuming standard AirNav layout.
+                    // Based on observation:
+                    // 100LL is typically in the 3rd column (index 2)
+                    // Jet A is typically in the 5th column (index 4) - but sometimes layout varies
                     
-                    const potentialPrice = $(tds[2]).text().trim();
-                    if (potentialPrice.startsWith('$')) {
-                        const price = parseFloat(potentialPrice.replace('$', ''));
-                        if (!isNaN(price) && price > 0) {
-                            prices.push(price);
-                        }
+                    // Simple heuristic: Look for '$' in specific cells
+                    const col2 = $(tds[2]).text().trim();
+                    const col4 = $(tds[4]).text().trim();
+
+                    if (col2.startsWith('$')) {
+                        const price = parseFloat(col2.replace('$', ''));
+                        if (!isNaN(price) && price > 0) prices100LL.push(price);
+                    }
+                    
+                    if (col4 && col4.startsWith('$')) {
+                        const price = parseFloat(col4.replace('$', ''));
+                        if (!isNaN(price) && price > 0) pricesJetA.push(price);
                     }
                 }
             });
         }
     });
 
-    if (prices.length === 0) {
-        return null;
-    }
-
-    // Return the minimum price found (Self Service usually)
-    return Math.min(...prices);
+    return {
+        price100LL: prices100LL.length > 0 ? Math.min(...prices100LL) : null,
+        priceJetA: pricesJetA.length > 0 ? Math.min(...pricesJetA) : null
+    };
 
   } catch (error) {
     console.error("Error fetching fuel prices:", error);

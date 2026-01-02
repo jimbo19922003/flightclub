@@ -16,7 +16,8 @@ async function getSettings() {
                  name: "My Flight Club", 
                  type: "EQUITY", 
                  homeAirport: "", 
-                 homeAirportFuelPrice: 6.50,
+                 fuelPrice100LL: 6.50,
+                 fuelPriceJetA: 5.50,
                  currency: "USD", 
                  timezone: "America/Chicago",
                  monthlyDues: 0,
@@ -42,7 +43,8 @@ interface ClubSettings {
   name: string;
   type: string;
   homeAirport: string;
-  homeAirportFuelPrice: number;
+  fuelPrice100LL: number;
+  fuelPriceJetA: number;
   currency: string;
   timezone: string;
   monthlyDues: number;
@@ -104,17 +106,28 @@ export default async function SettingsPage() {
                     </select>
                 </div>
 
+                <div className="relative">
+                    <label className="block text-sm font-medium text-gray-700">Home Airport (ICAO)</label>
+                    <input type="text" name="homeAirport" defaultValue={settings.homeAirport} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"/>
+                    <FuelPriceFetcher />
+                </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow border p-6 space-y-4">
+                <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Fuel Rates (Wet Rate Base)</h3>
                 <div className="grid grid-cols-2 gap-4">
                      <div>
-                        <label className="block text-sm font-medium text-gray-700">Home Airport (ICAO)</label>
-                        <input type="text" name="homeAirport" defaultValue={settings.homeAirport} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"/>
+                        <label className="block text-sm font-medium text-gray-700">100LL ($/gal)</label>
+                        <input type="number" step="0.01" name="fuelPrice100LL" defaultValue={settings.fuelPrice100LL} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"/>
                     </div>
-                     <div className="relative">
-                        <label className="block text-sm font-medium text-gray-700">Fuel Price ($/gal)</label>
-                        <input type="number" step="0.01" name="homeAirportFuelPrice" defaultValue={settings.homeAirportFuelPrice} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 pr-8"/>
-                        <FuelPriceFetcher />
+                     <div>
+                        <label className="block text-sm font-medium text-gray-700">Jet A ($/gal)</label>
+                        <input type="number" step="0.01" name="fuelPriceJetA" defaultValue={settings.fuelPriceJetA} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"/>
                     </div>
                 </div>
+                <p className="text-xs text-gray-500">
+                    These rates calculate member reimbursement when purchasing cheaper fuel off-field.
+                </p>
             </div>
 
             <div className="bg-white rounded-xl shadow border p-6 space-y-4">

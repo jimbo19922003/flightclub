@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { validateReservationRequest } from "@/lib/scheduling";
 
 export async function createReservation(formData: FormData) {
   const userId = formData.get("userId") as string;
@@ -11,51 +12,21 @@ export async function createReservation(formData: FormData) {
   const endTime = new Date(formData.get("endTime") as string);
   const notes = formData.get("notes") as string;
 
-  // 1. Fetch User and their Tier
-  const user = await prisma.user.findUnique({ 
-      where: { id: userId },
-      include: { membershipTier: true } 
-  });
-
-  if (!user) throw new Error("User not found");
-
-  // 2. Fetch Global Settings
-  const settings = await prisma.clubSettings.findFirst();
-
-  // 3. Determine Limits (Tier overrides Global)
-  const maxRes = user.membershipTier?.maxReservations ?? settings?.maxReservationsPerUser ?? 3;
-  const maxDays = user.membershipTier?.maxDaysPerReservation ?? settings?.maxReservationDays ?? 3;
-  const bookingWindow = user.membershipTier?.bookingWindowDays ?? 90;
-
-  // 4. Validate Booking Window
-  const maxBookingDate = new Date();
-  maxBookingDate.setDate(maxBookingDate.getDate() + bookingWindow);
-  if (startTime > maxBookingDate) {
-      throw new Error(`Reservation is outside of booking window (${bookingWindow} days).`);
+  // 1. Run Comprehensive Rules Engine
+  const validation = await validateReservationRequest(userId, startTime, endTime);
+  
+  if (!validation.allowed) {
+      // In a real app, we might return this error to the UI state.
+      // For now, we throw, which might trigger an error boundary or generic error.
+      throw new Error(validation.reason || "Reservation not allowed.");
   }
 
-  // 5. Validate Duration
-  const durationDays = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60 * 24);
-  if (durationDays > maxDays) {
-      throw new Error(`Reservation exceeds maximum duration of ${maxDays} days.`);
-  }
-
-  // 6. Validate Max Active Reservations
-  const activeReservations = await prisma.reservation.count({
-      where: {
-          userId: userId,
-          startTime: { gte: new Date() }
-      }
-  });
-
-  if (activeReservations >= maxRes) {
-      throw new Error(`User has reached maximum active reservations (${maxRes}).`);
-  }
-
-  // 7. Validate Aircraft Availability (Basic Overlap Check)
+  // 2. Validate Aircraft Availability (Double check specifically for aircraft overlap, 
+  // as the rules engine focuses on User permissions)
   const conflicting = await prisma.reservation.findFirst({
       where: {
           aircraftId: aircraftId,
+          status: { not: "CANCELLED" },
           OR: [
               { startTime: { lt: endTime }, endTime: { gt: startTime } } // Overlaps
           ]
@@ -73,7 +44,8 @@ export async function createReservation(formData: FormData) {
           startTime,
           endTime,
           type: 'FLIGHT',
-          notes
+          notes,
+          status: 'CONFIRMED'
       }
   });
 

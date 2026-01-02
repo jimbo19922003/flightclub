@@ -15,6 +15,7 @@ async function getSettings() {
                  name: "My Flight Club", 
                  type: "EQUITY", 
                  homeAirport: "", 
+                 homeAirportFuelPrice: 6.50,
                  currency: "USD", 
                  timezone: "America/Chicago",
                  monthlyDues: 0,
@@ -32,7 +33,6 @@ async function getSettings() {
   } catch (error: any) {
     console.error("Failed to fetch settings:", error);
     return { settings: null, tiers: [], error: error.message || "Unknown error" };
-    // return { settings: { name: "Error" }, tiers: [], error: error.message };
   }
 }
 
@@ -41,6 +41,7 @@ interface ClubSettings {
   name: string;
   type: string;
   homeAirport: string;
+  homeAirportFuelPrice: number;
   currency: string;
   timezone: string;
   monthlyDues: number;
@@ -102,9 +103,15 @@ export default async function SettingsPage() {
                     </select>
                 </div>
 
-                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Home Airport (ICAO)</label>
-                    <input type="text" name="homeAirport" defaultValue={settings.homeAirport} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"/>
+                <div className="grid grid-cols-2 gap-4">
+                     <div>
+                        <label className="block text-sm font-medium text-gray-700">Home Airport (ICAO)</label>
+                        <input type="text" name="homeAirport" defaultValue={settings.homeAirport} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"/>
+                    </div>
+                     <div>
+                        <label className="block text-sm font-medium text-gray-700">Fuel Price ($/gal)</label>
+                        <input type="number" step="0.01" name="homeAirportFuelPrice" defaultValue={settings.homeAirportFuelPrice} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"/>
+                    </div>
                 </div>
             </div>
 

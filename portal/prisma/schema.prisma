@@ -47,6 +47,7 @@ model ClubSettings {
   
   // Location & Localization
   homeAirport           String   @default("KOSH") // ICAO code
+  homeAirportFuelPrice  Float    @default(6.50) // Per gallon
   currency              String   @default("USD")
   timezone              String   @default("America/Chicago")
   
@@ -152,6 +153,7 @@ model Aircraft {
   status        AircraftStatus @default(AVAILABLE)
   
   hourlyRate    Float
+  rateType      AircraftRateType @default(WET) // Wet vs Dry
   
   currentHobbs  Float
   currentTach   Float
@@ -180,6 +182,11 @@ enum AircraftStatus {
   MAINTENANCE
   GROUNDED
   IN_USE
+}
+
+enum AircraftRateType {
+  WET
+  DRY
 }
 
 model MaintenanceSchedule {

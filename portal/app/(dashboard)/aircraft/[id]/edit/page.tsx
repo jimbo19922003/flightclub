@@ -113,6 +113,17 @@ export default async function EditAircraftPage({ params }: { params: Promise<{ i
                     />
                 </div>
                 <div>
+                    <label className="block text-sm font-medium text-gray-700">Rate Type</label>
+                    <select
+                        name="rateType"
+                        defaultValue={aircraft.rateType || "WET"} // Default to WET if migrated
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
+                    >
+                        <option value="WET">Wet (Fuel Inc)</option>
+                        <option value="DRY">Dry (No Fuel)</option>
+                    </select>
+                </div>
+                <div>
                     <label className="block text-sm font-medium text-gray-700">Current Hobbs</label>
                     <input 
                         type="number" 

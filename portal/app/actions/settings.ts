@@ -10,6 +10,7 @@ export async function updateClubSettings(formData: FormData) {
   const name = formData.get("name") as string;
   const type = formData.get("type") as "EQUITY" | "NON_PROFIT" | "COMMERCIAL";
   const homeAirport = formData.get("homeAirport") as string;
+  const homeAirportFuelPrice = parseFloat(formData.get("homeAirportFuelPrice") as string);
   const currency = formData.get("currency") as string;
   const timezone = formData.get("timezone") as string;
   const monthlyDues = parseFloat(formData.get("monthlyDues") as string);
@@ -17,6 +18,8 @@ export async function updateClubSettings(formData: FormData) {
   const maxReservationsPerUser = parseInt(formData.get("maxReservationsPerUser") as string);
   const maxReservationDays = parseInt(formData.get("maxReservationDays") as string);
   const suspendOverdueDays = parseInt(formData.get("suspendOverdueDays") as string);
+  const stripePublicKey = formData.get("stripePublicKey") as string;
+  const stripeSecretKey = formData.get("stripeSecretKey") as string;
 
   // Upsert ensures we only have one settings row (or updates the existing one)
   const settings = await prisma.clubSettings.findFirst();
@@ -28,6 +31,7 @@ export async function updateClubSettings(formData: FormData) {
         name,
         type,
         homeAirport,
+        homeAirportFuelPrice,
         currency,
         timezone,
         monthlyDues,
@@ -35,6 +39,8 @@ export async function updateClubSettings(formData: FormData) {
         maxReservationsPerUser,
         maxReservationDays,
         suspendOverdueDays,
+        stripePublicKey,
+        stripeSecretKey
       },
     });
   } else {
@@ -43,6 +49,7 @@ export async function updateClubSettings(formData: FormData) {
         name,
         type,
         homeAirport,
+        homeAirportFuelPrice: homeAirportFuelPrice || 6.50,
         currency,
         timezone,
         monthlyDues,
@@ -50,6 +57,8 @@ export async function updateClubSettings(formData: FormData) {
         maxReservationsPerUser,
         maxReservationDays,
         suspendOverdueDays,
+        stripePublicKey,
+        stripeSecretKey
       },
     });
   }

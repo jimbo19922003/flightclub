@@ -34,10 +34,10 @@
     - [x] Handle "Start Hobbs Photo" upload in `CheckInForm`.
     - [x] Handle "End Hobbs Photo" upload in `CheckOutForm`.
     - [x] Handle "Fuel Receipt" upload in `CheckOutForm` (Returning plane).
-- [ ] **Fuel & Reimbursement**
+- [x] **Fuel & Reimbursement**
     - [x] Add support for multiple fuel stops (via single upload or notes for now).
     - [x] Implement "Wet" vs "Dry" rate logic (Supported via `fuelReimbursement` field in Checkout).
-        - [ ] Add `rateType` (WET/DRY) to `Aircraft` model (Defer schema change).
+        - [x] Add `rateType` (WET/DRY) to `Aircraft` model.
         - [x] If WET: Fuel cost is reimbursed (deducted from flight cost or credited to user).
         - [x] If DRY: Pilot pays for fuel (no reimbursement logic needed, user enters 0).
 
@@ -45,8 +45,8 @@
 - [x] **Stripe Integration**
     - [x] Verify Stripe webhooks are working (Code exists).
     - [x] Ensure `ClubSettings` allows inputting Stripe keys (Added to Settings Page).
-- [ ] **Fuel Rates**
-    - [ ] Add configuration for "Home Airport Fuel Price" in Settings.
+- [x] **Fuel Rates**
+    - [x] Add configuration for "Home Airport Fuel Price" in Settings.
 
 ## General
 - [x] **Refinement**

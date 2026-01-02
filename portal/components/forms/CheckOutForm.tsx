@@ -29,6 +29,9 @@ export default function CheckOutForm({ reservation, aircraft, checklist }: { res
   const [uploadingHobbs, setUploadingHobbs] = useState(false);
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
 
+  // Rate Type Logic
+  const isWetRate = aircraft.rateType === "WET" || !aircraft.rateType; // Default to wet if undefined
+
   const checkOutWithId = checkOutReservation.bind(null, reservation.id);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, setter: (url: string) => void, loadingSetter: (l: boolean) => void) => {
@@ -65,6 +68,11 @@ export default function CheckOutForm({ reservation, aircraft, checklist }: { res
     if (endHobbsPhotoUrl) formData.set("endHobbsPhotoUrl", endHobbsPhotoUrl);
     if (fuelReceiptUrl) formData.set("fuelReceiptUrl", fuelReceiptUrl);
     
+    // Ensure fuel reimbursement is 0 if dry rate
+    if (!isWetRate) {
+        formData.set("fuelReimbursement", "0");
+    }
+
     try {
         await checkOutWithId(formData);
     } catch (e: any) {
@@ -169,7 +177,13 @@ export default function CheckOutForm({ reservation, aircraft, checklist }: { res
       </div>
 
       <div className="space-y-4 border-b pb-6">
-          <h3 className="font-semibold text-lg">2. Fuel & Expenses</h3>
+          <div className="flex justify-between items-center">
+            <h3 className="font-semibold text-lg">2. Fuel & Expenses</h3>
+            <span className={`px-2 py-1 text-xs font-bold rounded-full ${isWetRate ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800'}`}>
+                {isWetRate ? "WET RATE (Reimbursable)" : "DRY RATE (Pilot Pays)"}
+            </span>
+          </div>
+          
           <div className="grid grid-cols-3 gap-4">
               <div>
                   <label className="block text-sm font-medium text-gray-700">Gallons Added</label>
@@ -181,7 +195,14 @@ export default function CheckOutForm({ reservation, aircraft, checklist }: { res
               </div>
               <div>
                   <label className="block text-sm font-medium text-gray-700">Reimbursement ($)</label>
-                  <input type="number" name="fuelReimbursement" step="0.01" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm border p-2" />
+                  <input 
+                    type="number" 
+                    name="fuelReimbursement" 
+                    step="0.01" 
+                    disabled={!isWetRate}
+                    placeholder={!isWetRate ? "N/A (Dry Rate)" : "0.00"}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm border p-2 disabled:bg-gray-100 disabled:text-gray-500" 
+                  />
               </div>
           </div>
           

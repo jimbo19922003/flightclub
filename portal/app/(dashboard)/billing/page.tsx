@@ -1,16 +1,16 @@
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
 import { generateMonthlyInvoices } from "@/app/actions/billing";
+import Link from "next/link";
 
 export const dynamic = 'force-dynamic';
 
 async function getBillingStats() {
     try {
-        // In a real app, filter by current user if not admin
         const invoices = await prisma.invoice.findMany({
             include: { user: true },
             orderBy: { createdAt: 'desc' },
-            take: 10
+            take: 20
         });
         return invoices;
     } catch (error) {
@@ -42,12 +42,17 @@ export default async function BillingPage() {
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {invoices.map((invoice) => (
                             <tr key={invoice.id}>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{invoice.id.slice(-6)}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <Link href={`/billing/${invoice.id}`} className="text-blue-600 hover:underline">
+                                        #{invoice.id.slice(-6)}
+                                    </Link>
+                                </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{invoice.user.name || invoice.user.email}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{format(invoice.createdAt, 'MMM d, yyyy')}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${invoice.amount.toFixed(2)}</td>
@@ -59,11 +64,14 @@ export default async function BillingPage() {
                                         {invoice.status}
                                     </span>
                                 </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <Link href={`/billing/${invoice.id}`} className="text-indigo-600 hover:text-indigo-900">View</Link>
+                                </td>
                             </tr>
                         ))}
                          {invoices.length === 0 && (
                             <tr>
-                                <td colSpan={5} className="px-6 py-4 text-center text-gray-500">No invoices found.</td>
+                                <td colSpan={6} className="px-6 py-4 text-center text-gray-500">No invoices found.</td>
                             </tr>
                         )}
                     </tbody>

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { updateClubSettings, createMembershipTier, updatePassword } from "@/app/actions/settings";
 import { DeleteTierButton } from "@/components/DeleteTierButton";
+import FuelPriceFetcher from "@/components/FuelPriceFetcher";
 
 export const dynamic = 'force-dynamic';
 
@@ -108,9 +109,10 @@ export default async function SettingsPage() {
                         <label className="block text-sm font-medium text-gray-700">Home Airport (ICAO)</label>
                         <input type="text" name="homeAirport" defaultValue={settings.homeAirport} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"/>
                     </div>
-                     <div>
+                     <div className="relative">
                         <label className="block text-sm font-medium text-gray-700">Fuel Price ($/gal)</label>
-                        <input type="number" step="0.01" name="homeAirportFuelPrice" defaultValue={settings.homeAirportFuelPrice} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"/>
+                        <input type="number" step="0.01" name="homeAirportFuelPrice" defaultValue={settings.homeAirportFuelPrice} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2 pr-8"/>
+                        <FuelPriceFetcher />
                     </div>
                 </div>
             </div>

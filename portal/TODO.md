@@ -1,54 +1,56 @@
-# Feature Installation To-Do List
+# Flight Club Portal - Master Implementation Plan
 
-This document outlines the remaining steps to fully realize the "turnkey" flight club management solution.
+This document tracks the progress towards a fully "turnkey" flight club management solution.
 
-## 1. System Infrastructure (Completed in Schema)
-- [x] **Database Schema**: Updated `schema.prisma` to support Membership Tiers, complex Reservations, Flight Logs, Invoices, and Maintenance Schedules.
-- [ ] **Database Migration**: Run `rebuild.sh` or `prisma db push` to apply changes.
+## Phase 1: Core Infrastructure (✅ Completed)
+- [x] **Database Schema**: Upgraded to support Tiers, Complex Reservations, Invoices, Maintenance, and Flight Logs.
+- [x] **Flight Operations Logic**: Implemented backend actions for Check-in, Check-out, and Billing generation.
+- [x] **Scheduling Rules Engine**: Created `lib/scheduling.ts` to validate bookings against club rules (Weekends, Holidays, Quotas).
+- [x] **Aircraft Tracking**: Added ADS-B Hex Code support and embedded live tracking.
 
-## 2. Scheduling & Calendar
-- [ ] **Rules Engine Integration**: Connect `lib/scheduling.ts` to the `createReservation` server action to enforce:
-    - Max trip length
-    - Booking windows
-    - Weekend/Holiday limits
-    - Account suspension status
-- [ ] **Interactive Calendar**: Replace the basic list/table view in `/reservations` with a library like `react-big-calendar` or `FullCalendar`.
-    - Display "Blocks" of time.
-    - Color code by User or Aircraft.
+## Phase 2: Frontend & Operations (✅ Completed)
+- [x] **Interactive Calendar**: Implemented `react-big-calendar` for block-style scheduling visualization.
+- [x] **Check-in Wizard**: Created UI for Preflight Checklists, Meter Recording, and Flight Start.
+- [x] **Active Flight Mode**: Created a dedicated dashboard for pilots in-flight.
+- [x] **Check-out Wizard**: Created UI for Postflight Checklists, Fuel Reimbursement, and automatic Invoice generation.
 
-## 3. Flight Operations (Check-in / Check-out)
-- [ ] **Active Flight Dashboard**: Create `/reservations/[id]/active` page.
-    - Show Start Hobbs/Tach (read-only after check-in).
-    - Show "End Flight" button.
-- [ ] **Check-in Wizard**: Create `/reservations/[id]/checkin` UI.
-    - Step 1: Preflight Checklist (Interactive checkboxes).
-    - Step 2: Record Start Hobbs/Tach (Validate against current aircraft times).
-    - Step 3: Upload Photos (Hobbs/Tach).
-- [ ] **Check-out Wizard**: Create `/reservations/[id]/checkout` UI.
-    - Step 1: Postflight Checklist.
-    - Step 2: Record End Hobbs/Tach.
-    - Step 3: Fuel Inputs (Gallons, Cost, Receipt Upload).
-    - Step 4: Summary & Invoice Generation.
+## Phase 3: Billing & Finance (🚧 In Progress)
+- [ ] **Stripe/PayPal Integration**:
+    - [ ] Install `stripe` SDK.
+    - [ ] Create API Route `/api/webhooks/stripe` to handle payment confirmation.
+    - [ ] Add "Pay Now" button to Invoice Details page.
+- [ ] **Membership Dues**: Create a recurring job (cron) or admin button to "Generate Monthly Dues" for all active members.
+- [ ] **Suspension System**:
+    - [ ] Create a `middleware.ts` check or login check.
+    - [ ] If `User.balance > 0` AND `OldestUnpaidInvoice > 10 days`, set `User.status = SUSPENDED`.
 
-## 4. Billing & Finance
-- [ ] **Stripe Integration**:
-    - Install `stripe` node package.
-    - Create API route for Payment Intents.
-    - Create "Pay Now" button on Invoice page.
-- [ ] **Automated Invoicing**: Ensure `checkOutReservation` action correctly creates Invoices (Logic implemented, needs testing).
-- [ ] **Suspension Logic**: Create a Middleware or Global Check that runs on login to set `User.status = SUSPENDED` if `Invoice.status = OVERDUE` for > 10 days.
+## Phase 4: Maintenance Management (TODO)
+- [ ] **Maintenance Dashboard**: Create `/aircraft/[id]/maintenance`.
+    - [ ] List all active schedules (e.g. "Oil Change", "Annual").
+    - [ ] Show status bars (Green/Yellow/Red) based on Hours/Date.
+- [ ] **Edit Schedules**: Allow Admin to define new recurring maintenance items (Interval Hours / Interval Months).
+- [ ] **Squawk Management**: Display "Squawks" (notes) from Flight Logs in the Maintenance dashboard so mechanics can address them.
 
-## 5. Maintenance
-- [ ] **Maintenance Schedule UI**: Create `/aircraft/[id]/maintenance` settings page.
-    - Add/Edit recurring schedules (e.g. "Oil Change", "50 Hr").
-- [ ] **Dashboard Alerts**: Update the main Dashboard to show "Maintenance Due" alerts based on `lib/maintenance.ts`.
+## Phase 5: Advanced Configuration & Settings (TODO)
+- [ ] **Club Settings UI**: Update `/settings` to manage:
+    - [ ] Billing Cycle Day.
+    - [ ] Overdue Suspension Threshold (Days).
+    - [ ] Tax Rates (if applicable).
+- [ ] **Membership Tiers UI**: Create a visual editor for Membership Tiers.
+    - [ ] Set Booking Windows, Max Reservations, Hourly Discounts.
+    - [ ] Set Weekend/Holiday limits.
 
-## 6. Dashboard Improvements
-- [ ] **Widgets**:
-    - "My Next Flight"
-    - "Fleet Status" (Green/Red/Yellow indicators)
-    - "Club Balance" (Admin only)
-    - "Weather" (Integration with aviation weather API)
+## Phase 6: Dashboard & Analytics (TODO)
+- [ ] **Main Dashboard Overhaul**: Replace the simple list with Widgets.
+    - [ ] **Fleet Status**: Quick view of all aircraft (Available/In Use/Maintenance).
+    - [ ] **Financials**: Monthly Revenue vs Expenses (Fuel Reimbursements).
+    - [ ] **Personal**: "My Next Flight", "My Balance".
+    - [ ] **Weather**: Integration with aviationweather.gov API for home airport.
 
-## 7. Setup & Configuration
-- [ ] **Club Settings Page**: Enhance `/settings` to allow editing of all new global variables (overdue days, suspend thresholds, etc.).
+## Phase 7: Integrations (Nice to Have)
+- [ ] **Google Calendar Sync**:
+    - [ ] Use Google Calendar API to push confirmed reservations to a shared Club Calendar.
+    - [ ] Add "Add to My Calendar" button for users.
+
+---
+**Current Status**: The core Flight Operations loop (Book -> Check-in -> Fly -> Check-out -> Invoice) is functional. The next critical step is **Billing Integration** and **Maintenance UI**.

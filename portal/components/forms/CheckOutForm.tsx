@@ -5,7 +5,7 @@ import { checkOutReservation } from "@/app/actions/flight-operations";
 import { uploadFile } from "@/actions/upload";
 import { useRouter } from "next/navigation";
 
-export default function CheckOutForm({ reservation, aircraft, checklist }: { reservation: any, aircraft: any, checklist?: any }) {
+export default function CheckOutForm({ reservation, aircraft, checklist, homeAirportFuelPrice }: { reservation: any, aircraft: any, checklist?: any, homeAirportFuelPrice?: number }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -29,10 +29,24 @@ export default function CheckOutForm({ reservation, aircraft, checklist }: { res
   const [uploadingHobbs, setUploadingHobbs] = useState(false);
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
 
+  // Fuel Calculations
+  const [fuelGallons, setFuelGallons] = useState(0);
+  const [fuelReimbursement, setFuelReimbursement] = useState(0);
+
   // Rate Type Logic
   const isWetRate = aircraft.rateType === "WET" || !aircraft.rateType; // Default to wet if undefined
 
   const checkOutWithId = checkOutReservation.bind(null, reservation.id);
+
+  const handleFuelGallonsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const gallons = parseFloat(e.target.value) || 0;
+      setFuelGallons(gallons);
+      
+      // Auto-calculate reimbursement at Home Rate if Wet Rate
+      if (isWetRate && homeAirportFuelPrice && homeAirportFuelPrice > 0) {
+          setFuelReimbursement(Number((gallons * homeAirportFuelPrice).toFixed(2)));
+      }
+  };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, setter: (url: string) => void, loadingSetter: (l: boolean) => void) => {
       if (!e.target.files || e.target.files.length === 0) return;
@@ -187,7 +201,14 @@ export default function CheckOutForm({ reservation, aircraft, checklist }: { res
           <div className="grid grid-cols-3 gap-4">
               <div>
                   <label className="block text-sm font-medium text-gray-700">Gallons Added</label>
-                  <input type="number" name="fuelGallons" step="0.1" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm border p-2" />
+                  <input 
+                    type="number" 
+                    name="fuelGallons" 
+                    step="0.1" 
+                    value={fuelGallons || ""}
+                    onChange={handleFuelGallonsChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm border p-2" 
+                  />
               </div>
               <div>
                   <label className="block text-sm font-medium text-gray-700">Total Cost ($)</label>
@@ -199,10 +220,15 @@ export default function CheckOutForm({ reservation, aircraft, checklist }: { res
                     type="number" 
                     name="fuelReimbursement" 
                     step="0.01" 
+                    value={fuelReimbursement || ""}
+                    onChange={(e) => setFuelReimbursement(parseFloat(e.target.value))}
                     disabled={!isWetRate}
                     placeholder={!isWetRate ? "N/A (Dry Rate)" : "0.00"}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm border p-2 disabled:bg-gray-100 disabled:text-gray-500" 
                   />
+                  {isWetRate && homeAirportFuelPrice ? (
+                      <p className="text-xs text-gray-500 mt-1">Calculated at home rate: ${homeAirportFuelPrice}/gal</p>
+                  ) : null}
               </div>
           </div>
           

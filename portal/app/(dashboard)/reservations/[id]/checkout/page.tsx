@@ -4,6 +4,14 @@ import { notFound } from "next/navigation";
 
 export const dynamic = 'force-dynamic';
 
+async function getSettings() {
+    try {
+        return await prisma.clubSettings.findFirst();
+    } catch {
+        return null;
+    }
+}
+
 export default async function CheckOutPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const reservation = await prisma.reservation.findUnique({
@@ -17,6 +25,8 @@ export default async function CheckOutPage({ params }: { params: Promise<{ id: s
   if (!reservation) {
     notFound();
   }
+  
+  const settings = await getSettings();
   
   // Fetch Postflight Checklist
   const checklist = await prisma.checklist.findFirst({
@@ -40,6 +50,7 @@ export default async function CheckOutPage({ params }: { params: Promise<{ id: s
         reservation={reservation} 
         aircraft={reservation.aircraft}
         checklist={checklist}
+        homeAirportFuelPrice={settings?.homeAirportFuelPrice || 0}
       />
     </div>
   );

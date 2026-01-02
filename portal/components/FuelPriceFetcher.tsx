@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { getFuelPrices } from "@/app/actions/fuel";
 import { RefreshCw } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function FuelPriceFetcher() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   
   const handleFetch = async () => {
@@ -50,6 +52,10 @@ export default function FuelPriceFetcher() {
                 setTimeout(() => inputUL94.style.backgroundColor = "", 2000);
                 found = true;
             }
+        }
+
+        if (found) {
+            router.refresh(); // Refresh server components to show updated date
         }
 
         if (!found) {

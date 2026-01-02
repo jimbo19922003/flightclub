@@ -52,6 +52,18 @@ export async function updateAircraft(id: string, formData: FormData) {
     const currentTach = parseFloat(formData.get("currentTach") as string);
     const icaoHex = formData.get("icaoHex") as string || null;
     const statusRaw = formData.get("status") as string;
+    const rateConfigurationStr = formData.get("rateConfiguration") as string;
+    const fuelTypeRaw = formData.get("fuelType") as string;
+    
+    // Parse JSON safely
+    let rateConfiguration = undefined;
+    if (rateConfigurationStr) {
+        try {
+            rateConfiguration = JSON.parse(rateConfigurationStr);
+        } catch (e) {
+            console.error("Invalid JSON for rateConfiguration", e);
+        }
+    }
     
     // Validate status
     let status: AircraftStatus = AircraftStatus.AVAILABLE;
@@ -72,10 +84,13 @@ export async function updateAircraft(id: string, formData: FormData) {
         year,
         hourlyRate,
         rateType,
+        fuelType: fuelTypeRaw as any, // Enum
         currentHobbs,
         currentTach,
         icaoHex,
-        status
+        status,
+        rateConfiguration: rateConfiguration || undefined,
+        rateLastUpdated: rateConfiguration ? new Date() : undefined
       }
     });
   } catch (error) {

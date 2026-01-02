@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import ClientRateWrapper from "@/components/ClientRateWrapper";
+
 export const dynamic = 'force-dynamic';
 
 export default async function EditAircraftPage({ params }: { params: Promise<{ id: string }> }) {
@@ -26,6 +28,9 @@ export default async function EditAircraftPage({ params }: { params: Promise<{ i
       
       <div className="bg-white rounded-xl shadow border p-6">
         <form action={updateAircraftWithId} className="space-y-4">
+            <input type="hidden" name="rateConfiguration" id="rateConfiguration" />
+            <ClientRateWrapper aircraft={aircraft} />
+            
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700">Registration (Tail #)</label>
@@ -119,10 +124,12 @@ export default async function EditAircraftPage({ params }: { params: Promise<{ i
                     <input 
                         type="number" 
                         name="hourlyRate" 
+                        id="hourlyRate"
                         step="0.01"
                         required
                         defaultValue={aircraft.hourlyRate}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2 bg-gray-50"
+                        readOnly
                     />
                 </div>
                 <div>

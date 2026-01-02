@@ -33,28 +33,28 @@ export default function CheckOutForm({ reservation, aircraft, checklist, homeAir
   const [fuelGallons, setFuelGallons] = useState(0);
   const [fuelReimbursement, setFuelReimbursement] = useState(0);
 
+  const [fuelCost, setFuelCost] = useState(0);
+
   // Rate Type Logic
   const isWetRate = aircraft.rateType === "WET" || !aircraft.rateType; // Default to wet if undefined
 
   const checkOutWithId = checkOutReservation.bind(null, reservation.id);
 
   // Calculate Effective Rate & Totals
-  const [totalCost, setTotalCost] = useState(0);
-  const [effectiveRate, setEffectiveRate] = useState(0);
-  
-  // Calculate Cost
   const hourlyRate = reservation.aircraft.hourlyRate;
   const discount = reservation.user.membershipTier?.hourlyRateDiscount || 0;
   const discountedRate = hourlyRate * (1 - discount / 100);
 
   // Update total calculation whenever dependent values change
-  // Note: We use useEffect or perform calculation during render if state is consistent
-  // Let's do it on render for simplicity
   const flightTime = Math.max(0, endHobbs - startHobbs);
   const currentReimbursement = isWetRate ? fuelReimbursement : 0;
   
   const estimatedTotalCost = (flightTime * discountedRate) - currentReimbursement;
-  const estimatedEffectiveHourly = flightTime > 0 ? (estimatedTotalCost / flightTime) : 0;
+  
+  // Effective cost per hour = (Total Invoice + Out of Pocket Fuel) / Flight Time
+  // If flight time is 0, default to normal rate
+  const totalOutOfPocket = estimatedTotalCost + fuelCost;
+  const estimatedEffectiveHourly = flightTime > 0 ? (totalOutOfPocket / flightTime) : discountedRate;
 
   const handleFuelGallonsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const gallons = parseFloat(e.target.value) || 0;
@@ -231,7 +231,14 @@ export default function CheckOutForm({ reservation, aircraft, checklist, homeAir
               </div>
               <div>
                   <label className="block text-sm font-medium text-gray-700">Total Cost ($)</label>
-                  <input type="number" name="fuelCost" step="0.01" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm border p-2" />
+                  <input 
+                    type="number" 
+                    name="fuelCost" 
+                    step="0.01" 
+                    value={fuelCost || ""}
+                    onChange={(e) => setFuelCost(parseFloat(e.target.value) || 0)}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm border p-2" 
+                  />
               </div>
               <div>
                   <label className="block text-sm font-medium text-gray-700">Reimbursement ($)</label>
@@ -240,10 +247,8 @@ export default function CheckOutForm({ reservation, aircraft, checklist, homeAir
                     name="fuelReimbursement" 
                     step="0.01" 
                     value={fuelReimbursement || ""}
-                    onChange={(e) => setFuelReimbursement(parseFloat(e.target.value))}
-                    disabled={!isWetRate}
-                    placeholder={!isWetRate ? "N/A (Dry Rate)" : "0.00"}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm border p-2 disabled:bg-gray-100 disabled:text-gray-500" 
+                    readOnly
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm border p-2 bg-gray-100 text-gray-700 cursor-not-allowed" 
                   />
                   {isWetRate && homeAirportFuelPrice ? (
                       <p className="text-xs text-gray-500 mt-1">Calculated at home rate: ${homeAirportFuelPrice}/gal</p>

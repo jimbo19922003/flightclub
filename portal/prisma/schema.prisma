@@ -157,6 +157,8 @@ model Aircraft {
   
   hourlyRate    Float
   rateType      AircraftRateType @default(WET) // Wet vs Dry
+  rateConfiguration Json?
+  rateLastUpdated DateTime?
   fuelType      FuelType @default(OneHundredLL)
   
   currentHobbs  Float

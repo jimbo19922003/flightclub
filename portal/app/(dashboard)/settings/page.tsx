@@ -10,9 +10,19 @@ async function getSettings() {
     const tiers = await prisma.membershipTier.findMany({ orderBy: { monthlyDues: 'desc' } });
 
     if (!settings) {
-        // ... (default fallback code)
         return {
-             settings: { /* ... default settings ... */ },
+             settings: { 
+                 name: "My Flight Club", 
+                 type: "EQUITY", 
+                 homeAirport: "", 
+                 currency: "USD", 
+                 timezone: "America/Chicago",
+                 monthlyDues: 0,
+                 billingCycleDay: 1,
+                 maxReservationsPerUser: 3,
+                 maxReservationDays: 7,
+                 suspendOverdueDays: 10
+             },
              tiers: []
         }
     }
@@ -35,6 +45,7 @@ interface ClubSettings {
   billingCycleDay: number;
   maxReservationsPerUser: number;
   maxReservationDays: number;
+  suspendOverdueDays: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -117,9 +128,17 @@ export default async function SettingsPage() {
                     </div>
                 </div>
 
-                <div>
-                    <label className="block text-sm font-medium text-gray-700">Billing Cycle Day</label>
-                    <input type="number" name="billingCycleDay" defaultValue={settings.billingCycleDay} min="1" max="28" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"/>
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Billing Cycle Day</label>
+                        <input type="number" name="billingCycleDay" defaultValue={settings.billingCycleDay} min="1" max="28" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"/>
+                        <p className="text-xs text-gray-500 mt-1">Day of month invoices generate.</p>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Overdue Suspension (Days)</label>
+                        <input type="number" name="suspendOverdueDays" defaultValue={settings.suspendOverdueDays || 10} min="1" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"/>
+                        <p className="text-xs text-gray-500 mt-1">Days past due before account lock.</p>
+                    </div>
                 </div>
 
                 <div>
@@ -153,6 +172,7 @@ export default async function SettingsPage() {
                                 <p>Max Res: {tier.maxReservations} active, {tier.maxDaysPerReservation} days each</p>
                                 <p>Booking Window: {tier.bookingWindowDays} days</p>
                                 {tier.hourlyRateDiscount > 0 && <p className="text-green-600 font-semibold">{tier.hourlyRateDiscount}% Discount on Rates</p>}
+                                {tier.maxWeekendDaysPerYear && <p>Max Weekend Days: {tier.maxWeekendDaysPerYear}/yr</p>}
                             </div>
                         </div>
                         <DeleteTierButton id={tier.id} />
@@ -192,9 +212,20 @@ export default async function SettingsPage() {
                         </div>
                     </div>
                     
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                             <label className="block text-sm font-medium text-gray-700">Booking Window (Days)</label>
+                             <input type="number" name="bookingWindowDays" required defaultValue="90" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"/>
+                        </div>
+                        <div>
+                             <label className="block text-sm font-medium text-gray-700">Max Trip (Days)</label>
+                             <input type="number" name="maxTripLengthDays" required defaultValue="3" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"/>
+                        </div>
+                    </div>
+
                     <div>
-                         <label className="block text-sm font-medium text-gray-700">Booking Window (Days)</label>
-                         <input type="number" name="bookingWindowDays" required defaultValue="90" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"/>
+                         <label className="block text-sm font-medium text-gray-700">Weekend Days Limit (Per Year)</label>
+                         <input type="number" name="maxWeekendDaysPerYear" placeholder="Optional (e.g. 14)" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"/>
                     </div>
 
                     <button type="submit" className="w-full bg-slate-800 text-white px-4 py-2 rounded-md hover:bg-slate-900 font-bold">Create Tier</button>

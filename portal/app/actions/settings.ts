@@ -2,6 +2,9 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import bcrypt from "bcryptjs";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../api/auth/[...nextauth]/route";
 
 export async function updateClubSettings(formData: FormData) {
   const name = formData.get("name") as string;
@@ -13,6 +16,7 @@ export async function updateClubSettings(formData: FormData) {
   const billingCycleDay = parseInt(formData.get("billingCycleDay") as string);
   const maxReservationsPerUser = parseInt(formData.get("maxReservationsPerUser") as string);
   const maxReservationDays = parseInt(formData.get("maxReservationDays") as string);
+  const suspendOverdueDays = parseInt(formData.get("suspendOverdueDays") as string);
 
   // Upsert ensures we only have one settings row (or updates the existing one)
   const settings = await prisma.clubSettings.findFirst();
@@ -30,6 +34,7 @@ export async function updateClubSettings(formData: FormData) {
         billingCycleDay,
         maxReservationsPerUser,
         maxReservationDays,
+        suspendOverdueDays,
       },
     });
   } else {
@@ -44,6 +49,7 @@ export async function updateClubSettings(formData: FormData) {
         billingCycleDay,
         maxReservationsPerUser,
         maxReservationDays,
+        suspendOverdueDays,
       },
     });
   }
@@ -58,6 +64,8 @@ export async function createMembershipTier(formData: FormData) {
     const maxDaysPerReservation = parseInt(formData.get("maxDaysPerReservation") as string);
     const bookingWindowDays = parseInt(formData.get("bookingWindowDays") as string);
     const hourlyRateDiscount = parseFloat(formData.get("hourlyRateDiscount") as string);
+    const maxWeekendDaysPerYear = formData.get("maxWeekendDaysPerYear") ? parseInt(formData.get("maxWeekendDaysPerYear") as string) : null;
+    const maxTripLengthDays = parseInt(formData.get("maxTripLengthDays") as string);
 
     await prisma.membershipTier.create({
         data: {
@@ -66,16 +74,14 @@ export async function createMembershipTier(formData: FormData) {
             maxReservations,
             maxDaysPerReservation,
             bookingWindowDays,
-            hourlyRateDiscount
+            hourlyRateDiscount,
+            maxWeekendDaysPerYear,
+            maxTripLengthDays
         }
     });
     
     revalidatePath("/settings");
 }
-
-import bcrypt from "bcryptjs";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../api/auth/[...nextauth]/route";
 
 export async function deleteMembershipTier(id: string) {
     // In a real app, check if users are assigned to this tier first!

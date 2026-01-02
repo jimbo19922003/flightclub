@@ -107,6 +107,10 @@ export default async function AircraftDetailPage({ params }: { params: Promise<{
                           <span>Oil Change (Tach):</span>
                           <span>{aircraft.nextOilChange ? aircraft.nextOilChange.toFixed(1) : 'N/A'}</span>
                       </div>
+                      <div className="flex justify-between text-gray-400 text-xs pt-1 border-t mt-1">
+                          <span>Engine TSMOH:</span>
+                          <span>{aircraft.tsmoh ? aircraft.tsmoh.toFixed(1) : '0.0'}</span>
+                      </div>
                   </div>
               </div>
           </div>

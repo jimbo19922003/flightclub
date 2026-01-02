@@ -57,3 +57,30 @@ export async function createReservation(formData: FormData) {
   revalidatePath("/reservations");
   redirect("/reservations");
 }
+
+export async function cancelReservation(reservationId: string) {
+    const reservation = await prisma.reservation.findUnique({
+        where: { id: reservationId },
+        include: { user: true }
+    });
+    
+    if (!reservation) throw new Error("Reservation not found");
+    
+    // Check if can cancel (e.g. not in the past, or specific rules)
+    if (new Date(reservation.startTime) < new Date() && reservation.status !== 'CANCELLED') {
+         // Allow cancelling if it hasn't started essentially, but if it's in the past maybe just mark cancelled?
+         // Usually can't cancel past reservations.
+         // throw new Error("Cannot cancel a past reservation"); 
+         // For now, let's allow it but maybe log it.
+    }
+
+    await prisma.reservation.update({
+        where: { id: reservationId },
+        data: {
+            status: "CANCELLED"
+        }
+    });
+
+    revalidatePath("/reservations");
+    // return { success: true };
+}

@@ -88,6 +88,20 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
                 </div>
                 
                 <div>
+                    <label className="block text-sm font-medium text-gray-700">Account Status</label>
+                    <select 
+                        name="status" 
+                        defaultValue={member.status}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
+                    >
+                        <option value="ACTIVE">Active</option>
+                        <option value="PAST_DUE">Past Due</option>
+                        <option value="SUSPENDED">Suspended</option>
+                        <option value="INACTIVE">Inactive</option>
+                    </select>
+                </div>
+                
+                <div>
                     <label className="block text-sm font-medium text-gray-700">Role</label>
                     <select 
                         name="role" 
@@ -140,12 +154,34 @@ export default async function MemberDetailPage({ params }: { params: Promise<{ i
               {/* Stats Cards */}
               <div className="grid grid-cols-2 gap-4">
                   <div className="bg-white p-6 rounded-xl shadow border">
-                      <span className="block text-sm text-gray-500">Total Flight Time</span>
-                      <span className="text-2xl font-bold text-gray-900">{(member.stats?.flightTime || 0).toFixed(1)} hrs</span>
+                      <span className="block text-sm text-gray-500">Account Balance</span>
+                      <span className={`text-2xl font-bold ${member.balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                        ${member.balance.toFixed(2)}
+                      </span>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {member.balance > 0 ? "Amount Owed" : "Credit Available"}
+                      </p>
                   </div>
                   <div className="bg-white p-6 rounded-xl shadow border">
-                      <span className="block text-sm text-gray-500">Total Spend</span>
-                      <span className="text-2xl font-bold text-gray-900">${(member.stats?.cost || 0).toFixed(2)}</span>
+                      <span className="block text-sm text-gray-500">Status</span>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mt-2
+                        ${member.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 
+                          member.status === 'PAST_DUE' ? 'bg-yellow-100 text-yellow-800' : 
+                          member.status === 'SUSPENDED' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}`}>
+                        {member.status.replace('_', ' ')}
+                      </span>
+                  </div>
+              </div>
+
+              {/* Stats Cards (Secondary) */}
+              <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white p-6 rounded-xl shadow border">
+                      <span className="block text-sm text-gray-500">Total Flight Time</span>
+                      <span className="text-xl font-bold text-gray-900">{(member.stats?.flightTime || 0).toFixed(1)} hrs</span>
+                  </div>
+                  <div className="bg-white p-6 rounded-xl shadow border">
+                      <span className="block text-sm text-gray-500">Lifetime Spend</span>
+                      <span className="text-xl font-bold text-gray-900">${(member.stats?.cost || 0).toFixed(2)}</span>
                   </div>
               </div>
 

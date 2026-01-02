@@ -137,6 +137,7 @@ export async function checkOutReservation(
       currentHobbs: hobbsEnd,
       currentTach: tachEnd,
       status: "AVAILABLE",
+      tsmoh: { increment: flightTime }
     }
   });
 

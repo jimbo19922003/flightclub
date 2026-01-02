@@ -3,6 +3,7 @@ import { getAircraftMaintenanceStatus } from "@/lib/maintenance";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { format } from "date-fns";
+import MaintenanceScheduleList from "@/components/MaintenanceScheduleList";
 
 export const dynamic = 'force-dynamic';
 
@@ -30,49 +31,8 @@ export default async function AircraftMaintenancePage({ params }: { params: Prom
         </Link>
       </div>
 
-      {/* Status Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {statuses.map((status) => (
-            <div key={status.scheduleId} className={`rounded-xl shadow border p-6 ${
-                status.status === 'OVERDUE' ? 'bg-red-50 border-red-200' :
-                status.status === 'WARNING' ? 'bg-yellow-50 border-yellow-200' :
-                'bg-white'
-            }`}>
-                <div className="flex justify-between items-start mb-4">
-                    <h3 className="font-bold text-lg text-gray-900">{status.name}</h3>
-                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                        status.status === 'OVERDUE' ? 'bg-red-200 text-red-800' :
-                        status.status === 'WARNING' ? 'bg-yellow-200 text-yellow-800' :
-                        'bg-green-100 text-green-800'
-                    }`}>
-                        {status.status}
-                    </span>
-                </div>
-                
-                <div className="space-y-2 text-sm">
-                    {status.hoursRemaining !== undefined && (
-                        <div className="flex justify-between">
-                            <span className="text-gray-600">Hours Remaining:</span>
-                            <span className="font-mono font-medium">{status.hoursRemaining.toFixed(1)}</span>
-                        </div>
-                    )}
-                    {status.daysRemaining !== undefined && (
-                        <div className="flex justify-between">
-                            <span className="text-gray-600">Days Remaining:</span>
-                            <span className="font-mono font-medium">{status.daysRemaining}</span>
-                        </div>
-                    )}
-                </div>
-            </div>
-        ))}
-
-        {statuses.length === 0 && (
-            <div className="col-span-full text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-                <p className="text-gray-500">No recurring maintenance schedules configured.</p>
-                <button className="mt-2 text-blue-600 hover:underline font-medium">Add Schedule</button>
-            </div>
-        )}
-      </div>
+      {/* Interactive Schedule List (Client Component) */}
+      <MaintenanceScheduleList aircraftId={id} statuses={statuses} />
 
       {/* Recent Maintenance Log */}
       <div className="bg-white rounded-xl shadow border overflow-hidden">

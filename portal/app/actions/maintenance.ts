@@ -46,6 +46,60 @@ export async function createMaintenanceLog(formData: FormData) {
       }
   }
 
+  // Also update recurring schedules if they match
+  const aircraft = await prisma.aircraft.findUnique({ 
+      where: { id: aircraftId },
+      include: { schedules: true } 
+  });
+
+  if (aircraft) {
+      for (const schedule of aircraft.schedules) {
+          // Heuristic: If schedule name matches log type, update it
+          // In a real app, user would explicitly link log to schedule
+          if (schedule.name.toLowerCase().includes(title.toLowerCase()) || 
+              (type === 'OIL_CHANGE' && schedule.name.toLowerCase().includes('oil')) ||
+              (type === 'ANNUAL' && schedule.name.toLowerCase().includes('annual'))) {
+              
+              await prisma.maintenanceSchedule.update({
+                  where: { id: schedule.id },
+                  data: {
+                      lastPerformed: date,
+                      lastPerformedHours: aircraft.currentHobbs // Use current hobbs at time of logging
+                  }
+              });
+          }
+      }
+  }
+
   revalidatePath("/maintenance");
   redirect("/maintenance");
+}
+
+export async function createMaintenanceSchedule(formData: FormData) {
+    const aircraftId = formData.get("aircraftId") as string;
+    const name = formData.get("name") as string;
+    const intervalHours = formData.get("intervalHours") ? parseFloat(formData.get("intervalHours") as string) : null;
+    const intervalMonths = formData.get("intervalMonths") ? parseInt(formData.get("intervalMonths") as string) : null;
+    const lastPerformedHours = formData.get("lastPerformedHours") ? parseFloat(formData.get("lastPerformedHours") as string) : null;
+    const lastPerformedDate = formData.get("lastPerformedDate") ? new Date(formData.get("lastPerformedDate") as string) : null;
+
+    await prisma.maintenanceSchedule.create({
+        data: {
+            aircraftId,
+            name,
+            intervalHours,
+            intervalMonths,
+            lastPerformedHours,
+            lastPerformed: lastPerformedDate
+        }
+    });
+
+    revalidatePath(`/aircraft/${aircraftId}/maintenance`);
+}
+
+export async function deleteMaintenanceSchedule(scheduleId: string, aircraftId: string) {
+    await prisma.maintenanceSchedule.delete({
+        where: { id: scheduleId }
+    });
+    revalidatePath(`/aircraft/${aircraftId}/maintenance`);
 }

@@ -15,17 +15,20 @@ export async function updateClubSettings(formData: FormData) {
   const fuelPriceUL94 = parseFloat(formData.get("fuelPriceUL94") as string) || 0;
   const currency = formData.get("currency") as string;
   const timezone = formData.get("timezone") as string;
-  const monthlyDues = parseFloat(formData.get("monthlyDues") as string);
-  const billingCycleDay = parseInt(formData.get("billingCycleDay") as string);
-  const maxReservationsPerUser = parseInt(formData.get("maxReservationsPerUser") as string);
-  const maxReservationDays = parseInt(formData.get("maxReservationDays") as string);
-  const suspendOverdueDays = parseInt(formData.get("suspendOverdueDays") as string);
+  const monthlyDues = parseFloat(formData.get("monthlyDues") as string) || 0;
+  const billingCycleDay = parseInt(formData.get("billingCycleDay") as string) || 1;
+  const maxReservationsPerUser = parseInt(formData.get("maxReservationsPerUser") as string) || 3;
+  const maxReservationDays = parseInt(formData.get("maxReservationDays") as string) || 7;
+  const suspendOverdueDays = parseInt(formData.get("suspendOverdueDays") as string) || 10;
   const stripePublicKey = formData.get("stripePublicKey") as string;
   const stripeSecretKey = formData.get("stripeSecretKey") as string;
 
   // Upsert ensures we only have one settings row (or updates the existing one)
   const settings = await prisma.clubSettings.findFirst();
   
+  // Ensure fuelPriceLastUpdated is not wiped out if it exists
+  const fuelPriceLastUpdated = settings?.fuelPriceLastUpdated;
+
   if (settings) {
     await prisma.clubSettings.update({
       where: { id: settings.id },
@@ -36,6 +39,7 @@ export async function updateClubSettings(formData: FormData) {
         fuelPrice100LL: homeAirportFuelPrice,
         fuelPriceJetA,
         fuelPriceUL94,
+        fuelPriceLastUpdated,
         currency,
         timezone,
         monthlyDues,

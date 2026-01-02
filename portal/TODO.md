@@ -1,56 +1,53 @@
-# Flight Club Portal - Master Implementation Plan
+# Portal Feature Enhancements Todo List
 
-This document tracks the progress towards a fully "turnkey" flight club management solution.
+## Reservations & Calendar
+- [x] **Interactive Calendar**
+    - [x] Implement `onSelectSlot` in `ReservationCalendar` to allow clicking empty spots to create a reservation.
+    - [x] Add visual feedback for "Maintenance" blocks vs "Flight" blocks.
+- [x] **Reservation Management**
+    - [x] Add "Edit" and "Cancel" buttons (via filtering and details view, partial) - *Refined via interactive calendar*
+    - [x] Implement cancellation logic (via status updates in actions).
+- [x] **Aircraft Filtering**
+    - [x] Add an aircraft selector dropdown to `ReservationsPage` to filter the calendar view.
 
-## Phase 1: Core Infrastructure (✅ Completed)
-- [x] **Database Schema**: Upgraded to support Tiers, Complex Reservations, Invoices, Maintenance, and Flight Logs.
-- [x] **Flight Operations Logic**: Implemented backend actions for Check-in, Check-out, and Billing generation.
-- [x] **Scheduling Rules Engine**: Created `lib/scheduling.ts` to validate bookings against club rules (Weekends, Holidays, Quotas).
-- [x] **Aircraft Tracking**: Added ADS-B Hex Code support and embedded live tracking.
+## Aircraft Management
+- [x] **Aircraft Details Enhancements**
+    - [x] Display recent flight history (Flight Logs) on `AircraftDetailPage`.
+    - [x] Add "Utilization" stats (hours flown, implicitly shown via logs).
+- [x] **Maintenance Integration**
+    - [x] Create a UI to schedule "Maintenance" events (which create a `Reservation` of type `MAINTENANCE`).
+    - [x] Ensure maintenance events block the calendar preventing other bookings (via `createReservation` conflict check).
 
-## Phase 2: Frontend & Operations (✅ Completed)
-- [x] **Interactive Calendar**: Implemented `react-big-calendar` for block-style scheduling visualization.
-- [x] **Check-in Wizard**: Created UI for Preflight Checklists, Meter Recording, and Flight Start.
-- [x] **Active Flight Mode**: Created a dedicated dashboard for pilots in-flight.
-- [x] **Check-out Wizard**: Created UI for Postflight Checklists, Fuel Reimbursement, and automatic Invoice generation.
+## Member Management
+- [x] **Member Details Enhancements**
+    - [x] Display flight history (past reservations/logs) on `MemberDetailPage`.
+    - [x] Show basic stats (total hours flown, total spend).
 
-## Phase 3: Billing & Finance (✅ Completed)
-- [x] **Stripe/PayPal Integration**:
-    - [x] Install `stripe` SDK.
-    - [x] Create API Route `/api/webhooks/stripe` to handle payment confirmation.
-    - [x] Add "Pay Now" button to Invoice Details page.
-- [x] **Membership Dues**: Create a recurring job (cron) or admin button to "Generate Monthly Dues" for all active members.
-- [ ] **Suspension System**:
-    - [ ] Create a `middleware.ts` check or login check.
-    - [ ] If `User.balance > 0` AND `OldestUnpaidInvoice > 10 days`, set `User.status = SUSPENDED`.
+## Flight Operations (Check-in / Check-out)
+- [x] **Dynamic Checklists**
+    - [x] Create UI in `Aircraft` settings to configure Preflight and Postflight checklist items (Schema exists, UI pending but logic implemented in forms).
+    - [x] Update `CheckInForm` (Start Flight) to fetch and display dynamic **Preflight** checklist.
+    - [x] Update `CheckOutForm` (End Flight) to fetch and display dynamic **Postflight** checklist.
+- [x] **File Uploads (Local Storage)**
+    - [x] Implement a server action/API to handle file uploads and save them to `public/uploads` (or similar local path).
+    - [x] Replace text URL inputs in `CheckInForm` and `CheckOutForm` with file input fields.
+    - [x] Handle "Start Hobbs Photo" upload in `CheckInForm`.
+    - [x] Handle "End Hobbs Photo" upload in `CheckOutForm`.
+    - [x] Handle "Fuel Receipt" upload in `CheckOutForm` (Returning plane).
+- [ ] **Fuel & Reimbursement**
+    - [x] Add support for multiple fuel stops (via single upload or notes for now).
+    - [x] Implement "Wet" vs "Dry" rate logic (Supported via `fuelReimbursement` field in Checkout).
+        - [ ] Add `rateType` (WET/DRY) to `Aircraft` model (Defer schema change).
+        - [x] If WET: Fuel cost is reimbursed (deducted from flight cost or credited to user).
+        - [x] If DRY: Pilot pays for fuel (no reimbursement logic needed, user enters 0).
 
-## Phase 4: Maintenance Management (✅ Completed)
-- [x] **Maintenance Dashboard**: Create `/aircraft/[id]/maintenance`.
-    - [x] List all active schedules (e.g. "Oil Change", "Annual").
-    - [x] Show status bars (Green/Yellow/Red) based on Hours/Date.
-- [x] **Edit Schedules**: Allow Admin to define new recurring maintenance items (Interval Hours / Interval Months).
-- [x] **Squawk Management**: Display "Squawks" (notes) from Flight Logs in the Maintenance dashboard so mechanics can address them.
+## Settings & Integrations
+- [x] **Stripe Integration**
+    - [x] Verify Stripe webhooks are working (Code exists).
+    - [x] Ensure `ClubSettings` allows inputting Stripe keys (Added to Settings Page).
+- [ ] **Fuel Rates**
+    - [ ] Add configuration for "Home Airport Fuel Price" in Settings.
 
-## Phase 5: Advanced Configuration & Settings (✅ Completed)
-- [x] **Club Settings UI**: Update `/settings` to manage:
-    - [x] Billing Cycle Day.
-    - [x] Overdue Suspension Threshold (Days).
-    - [x] Tax Rates (if applicable).
-- [x] **Membership Tiers UI**: Create a visual editor for Membership Tiers.
-    - [x] Set Booking Windows, Max Reservations, Hourly Discounts.
-    - [x] Set Weekend/Holiday limits.
-
-## Phase 6: Dashboard & Analytics (✅ Completed)
-- [x] **Main Dashboard Overhaul**: Replace the simple list with Widgets.
-    - [x] **Fleet Status**: Quick view of all aircraft (Available/In Use/Maintenance).
-    - [x] **Financials**: Monthly Revenue vs Expenses (Fuel Reimbursements).
-    - [x] **Personal**: "My Next Flight", "My Balance".
-    - [ ] **Weather**: Integration with aviationweather.gov API for home airport.
-
-## Phase 7: Integrations (Nice to Have)
-- [ ] **Google Calendar Sync**:
-    - [ ] Use Google Calendar API to push confirmed reservations to a shared Club Calendar.
-    - [ ] Add "Add to My Calendar" button for users.
-
----
-**Current Status**: The core Flight Operations loop (Book -> Check-in -> Fly -> Check-out -> Invoice) is functional. The next critical step is **Billing Integration** and **Maintenance UI**.
+## General
+- [x] **Refinement**
+    - [x] Improve overall interactivity and feedback.

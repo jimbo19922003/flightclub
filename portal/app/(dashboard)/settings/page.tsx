@@ -21,7 +21,9 @@ async function getSettings() {
                  billingCycleDay: 1,
                  maxReservationsPerUser: 3,
                  maxReservationDays: 7,
-                 suspendOverdueDays: 10
+                 suspendOverdueDays: 10,
+                 stripePublicKey: "",
+                 stripeSecretKey: ""
              },
              tiers: []
         }
@@ -30,10 +32,10 @@ async function getSettings() {
   } catch (error: any) {
     console.error("Failed to fetch settings:", error);
     return { settings: null, tiers: [], error: error.message || "Unknown error" };
+    // return { settings: { name: "Error" }, tiers: [], error: error.message };
   }
 }
 
-// Define types locally if Prisma Client types are out of sync in development
 interface ClubSettings {
   id: string;
   name: string;
@@ -46,6 +48,8 @@ interface ClubSettings {
   maxReservationsPerUser: number;
   maxReservationDays: number;
   suspendOverdueDays: number;
+  stripePublicKey?: string;
+  stripeSecretKey?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -145,6 +149,37 @@ export default async function SettingsPage() {
                     <label className="block text-sm font-medium text-gray-700">Default Monthly Dues ($)</label>
                     <input type="number" name="monthlyDues" defaultValue={settings.monthlyDues} step="0.01" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"/>
                 </div>
+            </div>
+
+            {/* Integrations Section (Stripe) */}
+            <div className="bg-white rounded-xl shadow border p-6 space-y-4 col-span-full">
+                <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Integrations</h3>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                     <div>
+                        <label className="block text-sm font-medium text-gray-700">Stripe Public Key</label>
+                        <input 
+                            type="text" 
+                            name="stripePublicKey" 
+                            defaultValue={settings.stripePublicKey || ''} 
+                            placeholder="pk_test_..."
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Stripe Secret Key</label>
+                        <input 
+                            type="password" 
+                            name="stripeSecretKey" 
+                            defaultValue={settings.stripeSecretKey || ''} 
+                            placeholder="sk_test_..."
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm border p-2"
+                        />
+                    </div>
+                </div>
+                <p className="text-xs text-gray-500">
+                    Required for automated invoicing and payments.
+                </p>
             </div>
             
             <div className="col-span-full flex justify-end">

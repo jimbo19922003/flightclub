@@ -38,13 +38,32 @@ export default function CheckOutForm({ reservation, aircraft, checklist, homeAir
 
   const checkOutWithId = checkOutReservation.bind(null, reservation.id);
 
+  // Calculate Effective Rate & Totals
+  const [totalCost, setTotalCost] = useState(0);
+  const [effectiveRate, setEffectiveRate] = useState(0);
+  
+  // Calculate Cost
+  const hourlyRate = reservation.aircraft.hourlyRate;
+  const discount = reservation.user.membershipTier?.hourlyRateDiscount || 0;
+  const discountedRate = hourlyRate * (1 - discount / 100);
+
+  // Update total calculation whenever dependent values change
+  // Note: We use useEffect or perform calculation during render if state is consistent
+  // Let's do it on render for simplicity
+  const flightTime = Math.max(0, endHobbs - startHobbs);
+  const currentReimbursement = isWetRate ? fuelReimbursement : 0;
+  
+  const estimatedTotalCost = (flightTime * discountedRate) - currentReimbursement;
+  const estimatedEffectiveHourly = flightTime > 0 ? (estimatedTotalCost / flightTime) : 0;
+
   const handleFuelGallonsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const gallons = parseFloat(e.target.value) || 0;
       setFuelGallons(gallons);
       
       // Auto-calculate reimbursement at Home Rate if Wet Rate
       if (isWetRate && homeAirportFuelPrice && homeAirportFuelPrice > 0) {
-          setFuelReimbursement(Number((gallons * homeAirportFuelPrice).toFixed(2)));
+          const reimb = Number((gallons * homeAirportFuelPrice).toFixed(2));
+          setFuelReimbursement(reimb);
       }
   };
 
@@ -229,6 +248,29 @@ export default function CheckOutForm({ reservation, aircraft, checklist, homeAir
                   {isWetRate && homeAirportFuelPrice ? (
                       <p className="text-xs text-gray-500 mt-1">Calculated at home rate: ${homeAirportFuelPrice}/gal</p>
                   ) : null}
+              </div>
+          </div>
+          
+          {/* Estimated Invoice Preview */}
+          <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mt-4">
+              <h4 className="text-sm font-bold text-slate-700 uppercase mb-2">Estimated Invoice Preview</h4>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="flex justify-between">
+                      <span className="text-gray-600">Base Cost ({duration} hrs @ ${discountedRate.toFixed(2)}):</span>
+                      <span className="font-medium">${(flightTime * discountedRate).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-green-700">
+                      <span>Less Reimbursement:</span>
+                      <span className="font-medium">-${currentReimbursement.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between border-t pt-2 mt-2 font-bold text-lg text-slate-900">
+                      <span>Total Invoice:</span>
+                      <span>${estimatedTotalCost.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between border-t pt-2 mt-2 text-blue-700">
+                      <span>Effective Hourly Rate:</span>
+                      <span className="font-bold">${estimatedEffectiveHourly.toFixed(2)}/hr</span>
+                  </div>
               </div>
           </div>
           

@@ -52,6 +52,28 @@ async function main() {
     },
   })
 
+  // Add Schedules for Cessna
+  await prisma.maintenanceSchedule.create({
+    data: {
+        aircraftId: cessna.id,
+        name: 'Oil Change (50hr)',
+        intervalHours: 50.0,
+        lastPerformedHours: 2410.0, // Due in ~9.5 hours
+        lastPerformed: new Date()
+    }
+  })
+
+  await prisma.maintenanceSchedule.create({
+    data: {
+        aircraftId: cessna.id,
+        name: 'Annual Inspection',
+        intervalMonths: 12,
+        lastPerformed: new Date('2024-12-01'), // Due Dec 2025
+        lastPerformedHours: 2300.0
+    }
+  })
+
+
   const piper = await prisma.aircraft.upsert({
     where: { registration: 'N98765' },
     update: {},
@@ -67,6 +89,17 @@ async function main() {
       nextAnnual: new Date('2025-06-15'),
       nextOilChange: 1625.0,
     },
+  })
+
+  // Add Schedules for Piper
+  await prisma.maintenanceSchedule.create({
+    data: {
+        aircraftId: piper.id,
+        name: 'Oil Change (50hr)',
+        intervalHours: 50.0,
+        lastPerformedHours: 1760.0, // Due at 1810.0 (10 hours left)
+        lastPerformed: new Date()
+    }
   })
 
   // Create Reservations

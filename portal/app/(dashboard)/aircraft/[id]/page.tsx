@@ -90,7 +90,12 @@ export default async function AircraftDetailPage({ params }: { params: Promise<{
               </div>
               
               <div className="pt-4 border-t">
-                  <h3 className="font-medium text-gray-900 mb-2">Maintenance Due</h3>
+                  <div className="flex justify-between items-center mb-2">
+                      <h3 className="font-medium text-gray-900">Maintenance Due</h3>
+                      <Link href={`/aircraft/${aircraft.id}/maintenance`} className="text-xs text-blue-600 hover:underline">
+                          View Schedule
+                      </Link>
+                  </div>
                   <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                           <span>Annual Inspection:</span>

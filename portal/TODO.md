@@ -24,10 +24,10 @@ This document tracks the progress towards a fully "turnkey" flight club manageme
     - [ ] Create a `middleware.ts` check or login check.
     - [ ] If `User.balance > 0` AND `OldestUnpaidInvoice > 10 days`, set `User.status = SUSPENDED`.
 
-## Phase 4: Maintenance Management (TODO)
-- [ ] **Maintenance Dashboard**: Create `/aircraft/[id]/maintenance`.
-    - [ ] List all active schedules (e.g. "Oil Change", "Annual").
-    - [ ] Show status bars (Green/Yellow/Red) based on Hours/Date.
+## Phase 4: Maintenance Management (🚧 In Progress)
+- [x] **Maintenance Dashboard**: Create `/aircraft/[id]/maintenance`.
+    - [x] List all active schedules (e.g. "Oil Change", "Annual").
+    - [x] Show status bars (Green/Yellow/Red) based on Hours/Date.
 - [ ] **Edit Schedules**: Allow Admin to define new recurring maintenance items (Interval Hours / Interval Months).
 - [ ] **Squawk Management**: Display "Squawks" (notes) from Flight Logs in the Maintenance dashboard so mechanics can address them.
 

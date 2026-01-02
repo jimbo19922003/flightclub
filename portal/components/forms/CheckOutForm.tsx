@@ -29,11 +29,13 @@ export default function CheckOutForm({ reservation, aircraft, checklist, homeAir
   const [uploadingHobbs, setUploadingHobbs] = useState(false);
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
 
-  // Fuel Calculations
-  const [fuelGallons, setFuelGallons] = useState(0);
+  const [fuelStops, setFuelStops] = useState([{ id: '1', gallons: 0, cost: 0 }]);
+  
+  // Calculate Totals derived from stops
+  const totalGallons = fuelStops.reduce((sum, stop) => sum + (stop.gallons || 0), 0);
+  const totalFuelCost = fuelStops.reduce((sum, stop) => sum + (stop.cost || 0), 0);
+  
   const [fuelReimbursement, setFuelReimbursement] = useState(0);
-
-  const [fuelCost, setFuelCost] = useState(0);
 
   // Rate Type Logic
   const isWetRate = aircraft.rateType === "WET" || !aircraft.rateType; // Default to wet if undefined
@@ -52,18 +54,37 @@ export default function CheckOutForm({ reservation, aircraft, checklist, homeAir
   const estimatedTotalCost = (flightTime * discountedRate) - currentReimbursement;
   
   // Effective cost per hour = (Total Invoice + Out of Pocket Fuel) / Flight Time
-  // If flight time is 0, default to normal rate
-  const totalOutOfPocket = estimatedTotalCost + fuelCost;
+  const totalOutOfPocket = estimatedTotalCost + totalFuelCost;
   const estimatedEffectiveHourly = flightTime > 0 ? (totalOutOfPocket / flightTime) : discountedRate;
 
-  const handleFuelGallonsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const gallons = parseFloat(e.target.value) || 0;
-      setFuelGallons(gallons);
-      
-      // Auto-calculate reimbursement at Home Rate if Wet Rate
+  // Recalculate reimbursement whenever stops change
+  const updateReimbursement = (gallons: number) => {
       if (isWetRate && homeAirportFuelPrice && homeAirportFuelPrice > 0) {
           const reimb = Number((gallons * homeAirportFuelPrice).toFixed(2));
           setFuelReimbursement(reimb);
+      }
+  };
+
+  const handleStopChange = (id: string, field: 'gallons' | 'cost', value: number) => {
+      const newStops = fuelStops.map(stop => stop.id === id ? { ...stop, [field]: value } : stop);
+      setFuelStops(newStops);
+      
+      if (field === 'gallons') {
+          const newTotalGallons = newStops.reduce((sum, stop) => sum + (stop.gallons || 0), 0);
+          updateReimbursement(newTotalGallons);
+      }
+  };
+
+  const addFuelStop = () => {
+      setFuelStops([...fuelStops, { id: Date.now().toString(), gallons: 0, cost: 0 }]);
+  };
+
+  const removeFuelStop = (id: string) => {
+      if (fuelStops.length > 1) {
+          const newStops = fuelStops.filter(stop => stop.id !== id);
+          setFuelStops(newStops);
+          const newTotalGallons = newStops.reduce((sum, stop) => sum + (stop.gallons || 0), 0);
+          updateReimbursement(newTotalGallons);
       }
   };
 
@@ -100,6 +121,10 @@ export default function CheckOutForm({ reservation, aircraft, checklist, homeAir
     
     if (endHobbsPhotoUrl) formData.set("endHobbsPhotoUrl", endHobbsPhotoUrl);
     if (fuelReceiptUrl) formData.set("fuelReceiptUrl", fuelReceiptUrl);
+    
+    // Pass aggregated totals to server
+    formData.set("fuelGallons", totalGallons.toString());
+    formData.set("fuelCost", totalFuelCost.toString());
     
     // Ensure fuel reimbursement is 0 if dry rate
     if (!isWetRate) {
@@ -217,31 +242,62 @@ export default function CheckOutForm({ reservation, aircraft, checklist, homeAir
             </span>
           </div>
           
-          <div className="grid grid-cols-3 gap-4">
-              <div>
-                  <label className="block text-sm font-medium text-gray-700">Gallons Added</label>
-                  <input 
-                    type="number" 
-                    name="fuelGallons" 
-                    step="0.1" 
-                    value={fuelGallons || ""}
-                    onChange={handleFuelGallonsChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm border p-2" 
-                  />
+          <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-2">
+                  {fuelStops.map((stop, index) => (
+                      <div key={stop.id} className="flex gap-4 items-end bg-slate-50 p-3 rounded-md border border-slate-200">
+                          <div className="flex-1">
+                              <label className="block text-xs font-medium text-gray-700 mb-1">Stop #{index + 1} Gallons</label>
+                              <input 
+                                type="number" 
+                                step="0.1" 
+                                value={stop.gallons || ""}
+                                onChange={(e) => handleStopChange(stop.id, 'gallons', parseFloat(e.target.value) || 0)}
+                                className="block w-full rounded-md border-gray-300 shadow-sm sm:text-sm border p-2" 
+                                placeholder="0.0"
+                              />
+                          </div>
+                          <div className="flex-1">
+                              <label className="block text-xs font-medium text-gray-700 mb-1">Stop #{index + 1} Cost ($)</label>
+                              <input 
+                                type="number" 
+                                step="0.01" 
+                                value={stop.cost || ""}
+                                onChange={(e) => handleStopChange(stop.id, 'cost', parseFloat(e.target.value) || 0)}
+                                className="block w-full rounded-md border-gray-300 shadow-sm sm:text-sm border p-2" 
+                                placeholder="0.00"
+                              />
+                          </div>
+                          {fuelStops.length > 1 && (
+                              <button 
+                                type="button" 
+                                onClick={() => removeFuelStop(stop.id)}
+                                className="text-red-500 hover:text-red-700 p-2"
+                                title="Remove stop"
+                              >
+                                &times;
+                              </button>
+                          )}
+                      </div>
+                  ))}
               </div>
-              <div>
-                  <label className="block text-sm font-medium text-gray-700">Total Cost ($)</label>
-                  <input 
-                    type="number" 
-                    name="fuelCost" 
-                    step="0.01" 
-                    value={fuelCost || ""}
-                    onChange={(e) => setFuelCost(parseFloat(e.target.value) || 0)}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm border p-2" 
-                  />
+              
+              <div className="flex justify-between items-center">
+                  <button 
+                    type="button" 
+                    onClick={addFuelStop}
+                    className="text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"
+                  >
+                    <span>+ Add Another Fuel Stop</span>
+                  </button>
+                  <div className="text-right text-sm text-gray-600">
+                      <span className="mr-4">Total Gal: <strong>{totalGallons.toFixed(1)}</strong></span>
+                      <span>Total Cost: <strong>${totalFuelCost.toFixed(2)}</strong></span>
+                  </div>
               </div>
+
               <div>
-                  <label className="block text-sm font-medium text-gray-700">Reimbursement ($)</label>
+                  <label className="block text-sm font-medium text-gray-700">Total Reimbursement ($)</label>
                   <input 
                     type="number" 
                     name="fuelReimbursement" 

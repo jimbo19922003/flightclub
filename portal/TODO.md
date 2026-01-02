@@ -14,37 +14,37 @@ This document tracks the progress towards a fully "turnkey" flight club manageme
 - [x] **Active Flight Mode**: Created a dedicated dashboard for pilots in-flight.
 - [x] **Check-out Wizard**: Created UI for Postflight Checklists, Fuel Reimbursement, and automatic Invoice generation.
 
-## Phase 3: Billing & Finance (🚧 In Progress)
-- [ ] **Stripe/PayPal Integration**:
-    - [ ] Install `stripe` SDK.
-    - [ ] Create API Route `/api/webhooks/stripe` to handle payment confirmation.
-    - [ ] Add "Pay Now" button to Invoice Details page.
-- [ ] **Membership Dues**: Create a recurring job (cron) or admin button to "Generate Monthly Dues" for all active members.
+## Phase 3: Billing & Finance (✅ Completed)
+- [x] **Stripe/PayPal Integration**:
+    - [x] Install `stripe` SDK.
+    - [x] Create API Route `/api/webhooks/stripe` to handle payment confirmation.
+    - [x] Add "Pay Now" button to Invoice Details page.
+- [x] **Membership Dues**: Create a recurring job (cron) or admin button to "Generate Monthly Dues" for all active members.
 - [ ] **Suspension System**:
     - [ ] Create a `middleware.ts` check or login check.
     - [ ] If `User.balance > 0` AND `OldestUnpaidInvoice > 10 days`, set `User.status = SUSPENDED`.
 
-## Phase 4: Maintenance Management (🚧 In Progress)
+## Phase 4: Maintenance Management (✅ Completed)
 - [x] **Maintenance Dashboard**: Create `/aircraft/[id]/maintenance`.
     - [x] List all active schedules (e.g. "Oil Change", "Annual").
     - [x] Show status bars (Green/Yellow/Red) based on Hours/Date.
-- [ ] **Edit Schedules**: Allow Admin to define new recurring maintenance items (Interval Hours / Interval Months).
-- [ ] **Squawk Management**: Display "Squawks" (notes) from Flight Logs in the Maintenance dashboard so mechanics can address them.
+- [x] **Edit Schedules**: Allow Admin to define new recurring maintenance items (Interval Hours / Interval Months).
+- [x] **Squawk Management**: Display "Squawks" (notes) from Flight Logs in the Maintenance dashboard so mechanics can address them.
 
-## Phase 5: Advanced Configuration & Settings (TODO)
-- [ ] **Club Settings UI**: Update `/settings` to manage:
-    - [ ] Billing Cycle Day.
-    - [ ] Overdue Suspension Threshold (Days).
-    - [ ] Tax Rates (if applicable).
-- [ ] **Membership Tiers UI**: Create a visual editor for Membership Tiers.
-    - [ ] Set Booking Windows, Max Reservations, Hourly Discounts.
-    - [ ] Set Weekend/Holiday limits.
+## Phase 5: Advanced Configuration & Settings (✅ Completed)
+- [x] **Club Settings UI**: Update `/settings` to manage:
+    - [x] Billing Cycle Day.
+    - [x] Overdue Suspension Threshold (Days).
+    - [x] Tax Rates (if applicable).
+- [x] **Membership Tiers UI**: Create a visual editor for Membership Tiers.
+    - [x] Set Booking Windows, Max Reservations, Hourly Discounts.
+    - [x] Set Weekend/Holiday limits.
 
-## Phase 6: Dashboard & Analytics (TODO)
-- [ ] **Main Dashboard Overhaul**: Replace the simple list with Widgets.
-    - [ ] **Fleet Status**: Quick view of all aircraft (Available/In Use/Maintenance).
-    - [ ] **Financials**: Monthly Revenue vs Expenses (Fuel Reimbursements).
-    - [ ] **Personal**: "My Next Flight", "My Balance".
+## Phase 6: Dashboard & Analytics (✅ Completed)
+- [x] **Main Dashboard Overhaul**: Replace the simple list with Widgets.
+    - [x] **Fleet Status**: Quick view of all aircraft (Available/In Use/Maintenance).
+    - [x] **Financials**: Monthly Revenue vs Expenses (Fuel Reimbursements).
+    - [x] **Personal**: "My Next Flight", "My Balance".
     - [ ] **Weather**: Integration with aviationweather.gov API for home airport.
 
 ## Phase 7: Integrations (Nice to Have)
